@@ -42,7 +42,7 @@
             this.lblTitle.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.lblTitle.AutoSize = true;
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitle.Location = new System.Drawing.Point(65, 21);
+            this.lblTitle.Location = new System.Drawing.Point(65, 41);
             this.lblTitle.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(36, 21);
@@ -78,7 +78,8 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(127, 63);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(127, 83);
             this.tableLayoutPanel1.TabIndex = 2;
             // 
             // lblTop
@@ -86,6 +87,7 @@
             this.lblTop.AutoSize = true;
             this.lblTop.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblTop.Location = new System.Drawing.Point(63, 0);
+            this.lblTop.Margin = new System.Windows.Forms.Padding(3, 0, 3, 20);
             this.lblTop.Name = "lblTop";
             this.lblTop.Size = new System.Drawing.Size(57, 21);
             this.lblTop.TabIndex = 2;
@@ -94,7 +96,7 @@
             // lblSubtitle
             // 
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Location = new System.Drawing.Point(63, 42);
+            this.lblSubtitle.Location = new System.Drawing.Point(63, 62);
             this.lblSubtitle.Name = "lblSubtitle";
             this.lblSubtitle.Size = new System.Drawing.Size(61, 21);
             this.lblSubtitle.TabIndex = 3;
