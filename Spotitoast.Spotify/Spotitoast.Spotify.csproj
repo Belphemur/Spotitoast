@@ -14,4 +14,8 @@
     <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Client\WebSocket\" />
+  </ItemGroup>
+
 </Project>
