@@ -33,12 +33,12 @@ namespace Spotitoast.Banner.Model
         /// <summary>
         /// Gets/sets the text of the banner
         /// </summary>
-        public string Text { get; set; }
+        public string Text { get; set; } = "";
 
         /// <summary>
         /// Subtext to be shown
         /// </summary>
-        public string SubText { get; set; }
+        public string SubText { get; set; } = "";
 
         /// <summary>
         /// Gets/sets the path for an image, this is optional.
