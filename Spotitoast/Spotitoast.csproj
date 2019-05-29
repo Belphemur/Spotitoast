@@ -2,8 +2,40 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.0</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
-
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net472' ">
+    <!-- add From files to here to enable designer -->
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\spotify.ico" />
+    <None Remove="Resources\Spotitoast.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\spotify.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Spotitoast.Banner\Spotitoast.Banner.csproj" />
+    <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
+    <ProjectReference Include="..\Spotitoast.HotKeys\Spotitoast.HotKeys.csproj" />
+    <ProjectReference Include="..\Spotitoast.Spotify\Spotitoast.Spotify.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Utils\" />
+  </ItemGroup>
 </Project>

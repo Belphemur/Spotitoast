@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spotitoast.Demo", "Spotitoa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spotitoast.Banner", "Spotitoast.Banner\Spotitoast.Banner.csproj", "{E94E25E0-5A7C-47FE-89D0-7AEDFD1B6406}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spotitoast", "Spotitoast\Spotitoast.csproj", "{1D0548A1-B165-4E72-A7AE-D6039BE5F017}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{E94E25E0-5A7C-47FE-89D0-7AEDFD1B6406}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E94E25E0-5A7C-47FE-89D0-7AEDFD1B6406}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E94E25E0-5A7C-47FE-89D0-7AEDFD1B6406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D0548A1-B165-4E72-A7AE-D6039BE5F017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D0548A1-B165-4E72-A7AE-D6039BE5F017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D0548A1-B165-4E72-A7AE-D6039BE5F017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D0548A1-B165-4E72-A7AE-D6039BE5F017}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
