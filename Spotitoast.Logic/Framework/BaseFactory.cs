@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using Ninject;
 using Ninject.Syntax;
-using Spotitoast.Logic.Dependencies;
+using Spotitoast.Logic.Business.Action;
 
-namespace Spotitoast.Logic.Model.Action
+namespace Spotitoast.Logic.Framework
 {
-    public class ActionFactory : IActionFactory
+    public class BaseFactory<TKey, TImpl> : IFactory<TKey, TImpl> where TImpl: IEnumImplementation<TKey>
     {
-        private readonly IDictionary<Action, IAction> _values;
 
-        public ActionFactory(IResolutionRoot resolutionRoot)
+        private readonly IDictionary<TKey, TImpl> _values;
+
+        public BaseFactory(IResolutionRoot resolutionRoot)
         {
-            _values = resolutionRoot.GetAll<IAction>().ToDictionary(action => action.Enum, action => action);
+            _values = resolutionRoot.GetAll<TImpl>().ToDictionary(action => action.Enum, action => action);
         }
 
         public enum Action
@@ -30,7 +30,7 @@ namespace Spotitoast.Logic.Model.Action
         /// </summary>
         /// <param name="actionEnum"></param>
         /// <returns></returns>
-        public IAction Get(Action actionEnum)
+        public TImpl Get(TKey actionEnum)
         {
             _values.TryGetValue(actionEnum, out var action);
             return action;
@@ -40,9 +40,9 @@ namespace Spotitoast.Logic.Model.Action
         /// All the values
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyCollection<IAction> Values()
+        public IReadOnlyCollection<TImpl> Values()
         {
-            return (IReadOnlyCollection<IAction>) _values.Values;
+            return (IReadOnlyCollection<TImpl>)_values.Values;
         }
     }
 }

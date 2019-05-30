@@ -1,9 +1,10 @@
 ﻿using System.Threading.Tasks;
+using Spotitoast.Logic.Framework;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Logic.Model.Action
+namespace Spotitoast.Logic.Business.Action
 {
-    public interface IAction
+    public interface IAction : IEnumImplementation<ActionFactory.PlayerAction>
     {
         /// <summary>
         /// Execute the action
@@ -12,7 +13,5 @@ namespace Spotitoast.Logic.Model.Action
         Task<ActionResult> Execute();
 
         string Label { get; }
-
-        ActionFactory.Action Enum { get; }
     }
 }

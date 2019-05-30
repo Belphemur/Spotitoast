@@ -2,7 +2,7 @@
 using Spotitoast.Spotify.Client;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Logic.Model.Action.Implementation
+namespace Spotitoast.Logic.Business.Action.Implementation
 {
     public class PauseAction : BaseAction
     {
@@ -16,6 +16,6 @@ namespace Spotitoast.Logic.Model.Action.Implementation
         }
 
         public override string Label => "Pause Playback";
-        public override ActionFactory.Action Enum => ActionFactory.Action.Pause;
+        public override ActionFactory.PlayerAction Enum => ActionFactory.PlayerAction.Pause;
     }
 }

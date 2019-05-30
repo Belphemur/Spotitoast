@@ -2,7 +2,7 @@
 using Spotitoast.Spotify.Client;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Logic.Model.Action.Implementation
+namespace Spotitoast.Logic.Business.Action.Implementation
 {
     public class LikeAction : BaseAction
     {
@@ -16,6 +16,6 @@ namespace Spotitoast.Logic.Model.Action.Implementation
         }
 
         public override string Label => "Like Song";
-        public override ActionFactory.Action Enum => ActionFactory.Action.Like;
+        public override ActionFactory.PlayerAction Enum => ActionFactory.PlayerAction.Like;
     }
 }

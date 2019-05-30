@@ -1,6 +1,6 @@
 ﻿using Ninject.Modules;
-using Spotitoast.Logic.Model.Action;
-using Spotitoast.Logic.Model.Action.Implementation;
+using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Action.Implementation;
 
 namespace Spotitoast.Logic.Dependencies.Actions
 {

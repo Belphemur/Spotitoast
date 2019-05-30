@@ -2,7 +2,7 @@
 using Spotitoast.Spotify.Client;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Logic.Model.Action.Implementation
+namespace Spotitoast.Logic.Business.Action.Implementation
 {
     public class DislikeAction : BaseAction
     {
@@ -16,6 +16,6 @@ namespace Spotitoast.Logic.Model.Action.Implementation
         }
 
         public override string Label => "Dislike Song";
-        public override ActionFactory.Action Enum => ActionFactory.Action.Dislike;
+        public override ActionFactory.PlayerAction Enum => ActionFactory.PlayerAction.Dislike;
     }
 }
