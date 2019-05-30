@@ -22,12 +22,11 @@ namespace Spotitoast
         private static void Main()
         {
 
-            var kernel = Bootstrap.KernelLoad();
             HotKeyHandler.Start();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(kernel.Get<SpotitoastContext>());
+            Application.Run(Bootstrap.Kernel.Get<SpotitoastContext>());
 
             HotKeyHandler.Stop();
         }

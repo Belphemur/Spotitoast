@@ -11,8 +11,7 @@ namespace Spotitoast.Logic.Dependencies.Actions
             Bind<IActionFactory>().To<ActionFactory>().InSingletonScope();
             Bind<IAction>().To<LikeAction>();
             Bind<IAction>().To<DislikeAction>();
-            Bind<IAction>().To<ResumeAction>();
-            Bind<IAction>().To<PauseAction>();
+            Bind<IAction>().To<TogglePlayback>();
         }
     }
 }

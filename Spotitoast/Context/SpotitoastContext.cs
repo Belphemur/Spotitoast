@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Drawing;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using Spotitoast.Banner.Client;
 using Spotitoast.Configuration;
+using Spotitoast.HotKeys.Handler;
+using Spotitoast.Logic.Business.Action;
 
 namespace Spotitoast.Context
 {
@@ -14,12 +17,24 @@ namespace Spotitoast.Context
         private readonly SynchronizationContext _uiThreadContext = new WindowsFormsSynchronizationContext();
 
         private readonly ConfigurationManager _configurationManager;
+        private readonly HotkeysConfiguration _configuration;
 
-        public SpotitoastContext(ConfigurationManager configurationManager)
+        public SpotitoastContext(ConfigurationManager configurationManager, IActionFactory actionFactory)
         {
             _configurationManager = configurationManager;
             _trayIcon = BuildTrayIcon();
             InitBannerClient();
+            _configuration = _configurationManager.LoadConfiguration<HotkeysConfiguration>();
+            foreach (var key in _configuration.HotKeys.Keys)
+            {
+                HotKeyHandler.RegisterHotKey(key);
+            }
+
+            HotKeyHandler.HotKeyPressed
+                .Select(keys => actionFactory.Get(_configuration.GetAction(keys)))
+                .Where(action => action != null)
+                .Subscribe(action => action.Execute());
+
         }
 
         private void InitBannerClient()

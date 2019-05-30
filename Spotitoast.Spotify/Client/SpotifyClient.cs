@@ -165,7 +165,7 @@ namespace Spotitoast.Spotify.Client
 
             result = await _spotifyWebClient.SkipPlaybackToNextAsync();
 
-            if (result.HasError())
+                  if (result.HasError())
             {
                 return ActionResult.Error;
             }
@@ -186,7 +186,7 @@ namespace Spotitoast.Spotify.Client
             if (result.HasError())
                 return ActionResult.Error;
 
-            CheckCurrentPlayedTrack();
+            if (_playbackContext != null) _playbackContext.IsPlaying = true;
 
             return ActionResult.Success;
         }

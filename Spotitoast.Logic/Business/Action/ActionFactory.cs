@@ -14,8 +14,7 @@ namespace Spotitoast.Logic.Business.Action
         {
             Like,
             Dislike,
-            Play,
-            Pause
+            TogglePlayback
         }
 
         public ActionFactory(IResolutionRoot resolutionRoot) : base(resolutionRoot)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace Spotitoast.HotKeys.Model
 {
@@ -23,17 +24,10 @@ namespace Spotitoast.HotKeys.Model
         {
             Keys = keys;
             Modifier = modifier;
-            Enabled = true;
-        }
-
-        public HotKeys()
-        {
-            Enabled = true;
         }
 
         public Keys Keys { get; set; }
         public ModifierKeys Modifier { get; set; }
-        public bool Enabled { get; set; }
 
         public bool Equals(HotKeys other)
         {
@@ -72,7 +66,7 @@ namespace Spotitoast.HotKeys.Model
         {
             var key = Enum.Format(typeof(Keys), Keys, "g");
             var modKeys = Enum.Format(typeof(ModifierKeys), Modifier, "g");
-            return $"{modKeys.Replace(", ", "+")}+{key}: {Enabled}";
+            return $"{modKeys.Replace(", ", "+")}+{key}";
         }
 
         public string Display()
