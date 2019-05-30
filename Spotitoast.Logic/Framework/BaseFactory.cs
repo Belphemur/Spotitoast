@@ -16,14 +16,6 @@ namespace Spotitoast.Logic.Framework
             _values = resolutionRoot.GetAll<TImpl>().ToDictionary(action => action.Enum, action => action);
         }
 
-        public enum Action
-        {
-            Like,
-            Dislike,
-            Play,
-            Pause
-        }
-
 
         /// <summary>
         /// Get the action for the enum
