@@ -9,7 +9,6 @@ using SpotifyAPI.Web;
 using SpotifyAPI.Web.Models;
 using Spotitoast.Configuration;
 using Spotitoast.Spotify.Client.Auth;
-using Spotitoast.Spotify.Client.Event;
 using Spotitoast.Spotify.Configuration;
 using Spotitoast.Spotify.Model;
 using Unosquare.Swan.Components;
