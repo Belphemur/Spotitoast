@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -17,7 +19,11 @@ namespace Spotitoast.HotKeys.Handler
         private readonly Dictionary<Model.HotKeys, int> _registeredHotkeys = new Dictionary<Model.HotKeys, int>();
         private int _hotKeyId;
 
-        public static event EventHandler<KeyPressedEventArgs> HotKeyPressed;
+        private static readonly Subject<Model.HotKeys> _hotkeyPressedSubject = new Subject<Model.HotKeys>();
+
+        public static IObservable<Model.HotKeys> HotKeyPressed => _hotkeyPressedSubject.AsObservable();
+
+
         private HotKeyHandler()
         {
 
@@ -47,7 +53,6 @@ namespace Spotitoast.HotKeys.Handler
             if (_instance == null)
                 throw new InvalidOperationException("Adapter not started");
 
-            HotKeyPressed = null;
 
             if (_instance.IsDisposed) return;
 
@@ -205,8 +210,8 @@ namespace Spotitoast.HotKeys.Handler
             var key = (Keys)((ConvertLParam(m.LParam) >> 16) & 0xFFFF);
             var modifier = (Model.HotKeys.ModifierKeys)(ConvertLParam(m.LParam) & 0xFFFF);
 
-            HotKeyPressed?.Invoke(this, new KeyPressedEventArgs(new Model.HotKeys(key, modifier)));
-            GC.Collect();
+            _hotkeyPressedSubject.OnNext(new Model.HotKeys(key, modifier));
+
         }
 
 
