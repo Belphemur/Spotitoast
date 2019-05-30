@@ -163,6 +163,13 @@ namespace Spotitoast.Spotify.Client
                 return ActionResult.Error;
             }
 
+            result = await _spotifyWebClient.SkipPlaybackToNextAsync();
+
+            if (result.HasError())
+            {
+                return ActionResult.Error;
+            }
+
             _trackDisliked.OnNext(track);
             return ActionResult.Success;
         }
