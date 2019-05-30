@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Models;
@@ -21,10 +23,16 @@ namespace Spotitoast.Spotify.Client
 
         private PlaybackContext _playbackContext;
 
-        public FullTrack PlayedTrack => _playbackContext?.Item;
         public bool IsPlaying => _playbackContext?.IsPlaying ?? false;
 
-        public event EventHandler<CurrentlyPlayedTrackChangedEvent> CurrentlyPlayedTrackChanged;
+
+        private readonly ISubject<FullTrack> _playedTrackSubject = new Subject<FullTrack>();
+        private readonly ISubject<FullTrack> _trackLiked = new Subject<FullTrack>();
+        private readonly ISubject<FullTrack> _trackDisliked = new Subject<FullTrack>();
+
+        public IObservable<FullTrack> PlayedTrack => _playedTrackSubject.AsObservable();
+        public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
+        public IObservable<FullTrack> TrackDisliked => _trackDisliked.AsObservable();
 
         public SpotifyClient(ConfigurationManager configurationManager)
         {
@@ -67,19 +75,20 @@ namespace Spotitoast.Spotify.Client
                     return;
                 }
 
-                var oldTrack = PlayedTrack;
+                var oldTrack = _playbackContext?.Item;
                 _playbackContext = trackResponse;
 
+                var playedTrack = _playbackContext?.Item;
 
-                if (PlayedTrack == null)
+                if (playedTrack == null)
                 {
                     return;
                 }
 
-                if ((oldTrack == null && PlayedTrack != null)
-                    || PlayedTrack.Id != oldTrack?.Id)
+                if (oldTrack == null
+                    || playedTrack.Id != oldTrack.Id)
                 {
-                    CurrentlyPlayedTrackChanged?.Invoke(this, new CurrentlyPlayedTrackChangedEvent(PlayedTrack));
+                    _playedTrackSubject.OnNext(playedTrack);
                 }
             }
             catch (Exception)
@@ -94,7 +103,8 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> LikePlayedTrack()
         {
-            var trackId = PlayedTrack?.Id;
+            var track = _playbackContext?.Item;
+            var trackId = track?.Id;
 
             var loveState = await CheckLoveState(trackId);
             if (loveState != ActionResult.NotLoved)
@@ -103,7 +113,13 @@ namespace Spotitoast.Spotify.Client
             }
 
             var result = await _spotifyWebClient.SaveTrackAsync(trackId);
-            return result.HasError() ? ActionResult.Error : ActionResult.Success;
+            if (result.HasError())
+            {
+                return ActionResult.Error;
+            }
+
+            _trackLiked.OnNext(track);
+            return ActionResult.Success;
         }
 
         /// <summary>
@@ -133,7 +149,8 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> DislikePlayedTrack()
         {
-            var trackId = PlayedTrack?.Id;
+            var track = _playbackContext?.Item;
+            var trackId = track?.Id;
 
             var loveState = await CheckLoveState(trackId);
             if (loveState != ActionResult.AlreadyLoved)
@@ -142,7 +159,13 @@ namespace Spotitoast.Spotify.Client
             }
 
             var result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
-            return result.HasError() ? ActionResult.Error : ActionResult.Success;
+            if (result.HasError())
+            {
+                return ActionResult.Error;
+            }
+
+            _trackDisliked.OnNext(track);
+            return ActionResult.Success;
         }
 
         /// <summary>

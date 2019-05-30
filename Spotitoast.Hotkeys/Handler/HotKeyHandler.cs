@@ -6,7 +6,6 @@ using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using Spotitoast.HotKeys.Event;
 
 namespace Spotitoast.HotKeys.Handler
 {
@@ -19,7 +18,7 @@ namespace Spotitoast.HotKeys.Handler
         private readonly Dictionary<Model.HotKeys, int> _registeredHotkeys = new Dictionary<Model.HotKeys, int>();
         private int _hotKeyId;
 
-        private static readonly Subject<Model.HotKeys> _hotkeyPressedSubject = new Subject<Model.HotKeys>();
+        private static readonly ISubject<Model.HotKeys> _hotkeyPressedSubject = new Subject<Model.HotKeys>();
 
         public static IObservable<Model.HotKeys> HotKeyPressed => _hotkeyPressedSubject.AsObservable();
 

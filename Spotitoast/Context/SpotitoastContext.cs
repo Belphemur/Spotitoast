@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
+using Spotitoast.Banner.Client;
 
 namespace Spotitoast.Context
 {
@@ -11,18 +12,29 @@ namespace Spotitoast.Context
 
         public SpotitoastContext()
         {
-            // Initialize Tray Icon
-            using var manifestResourceStream = Assembly.GetEntryAssembly()?.GetManifestResourceStream("Spotitoast.Resources.spotify.ico") ?? throw new InvalidOperationException();
-            _trayIcon = new NotifyIcon()
+            BannerClient.Setup();
+            _trayIcon = BuildTrayIcon();
+
+        }
+
+        private NotifyIcon BuildTrayIcon()
+        {
+// Initialize Tray Icon
+            using var manifestResourceStream =
+                Assembly.GetEntryAssembly()?.GetManifestResourceStream("Spotitoast.Resources.spotify.ico") ??
+                throw new InvalidOperationException();
+            var trayIcon = new NotifyIcon()
             {
                 Icon = new Icon(manifestResourceStream),
-                ContextMenu = new ContextMenu(new[] {
+                ContextMenu = new ContextMenu(new[]
+                {
                     new MenuItem("Exit", Exit)
                 }),
                 BalloonTipTitle = "Spotitoast",
                 Text = "Spotitoast",
                 Visible = true
             };
+            return trayIcon;
         }
 
         void Exit(object sender, EventArgs e)

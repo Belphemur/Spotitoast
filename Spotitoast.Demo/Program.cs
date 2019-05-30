@@ -31,22 +31,21 @@ namespace Spotitoast
 
             var mainForm = new Form1(client);
 
-
-            client.CurrentlyPlayedTrackChanged += (sender, @event) =>
+            client.PlayedTrack.Subscribe(track =>
             {
-                var trackName = @event.Track.Name;
-                var artists = string.Join(", ", @event.Track.Artists.Select(artist => artist.Name));
-                var imageUrl = @event.Track.Album.Images.First().Url;
+                var trackName = track.Name;
+                var artists = string.Join(", ", track.Artists.Select(artist => artist.Name));
+                var imageUrl = track.Album.Images.First().Url;
                 mainForm.UpdateTrackLabel(trackName);
                 var bannerData = new BannerData(imageUrl, new Size(100, 100))
                 {
                     Title = trackName,
-                    Text = @event.Track.Album.Name,
+                    Text = track.Album.Name,
                     SubText = artists
                 };
 
                 BannerClient.ShowNotification(bannerData);
-            };
+            });
 
 
             Application.Run(mainForm);
