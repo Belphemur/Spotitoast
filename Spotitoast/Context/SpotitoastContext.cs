@@ -1,21 +1,32 @@
 ﻿using System;
 using System.Drawing;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using Spotitoast.Banner.Client;
+using Spotitoast.Configuration;
 
 namespace Spotitoast.Context
 {
     public class SpotitoastContext : ApplicationContext
     {
         private readonly NotifyIcon _trayIcon;
+        private readonly SynchronizationContext _uiThreadContext = new WindowsFormsSynchronizationContext();
 
-        public SpotitoastContext()
+        private readonly ConfigurationManager _configurationManager;
+
+        public SpotitoastContext(ConfigurationManager configurationManager)
         {
-            BannerClient.Setup();
+            _configurationManager = configurationManager;
             _trayIcon = BuildTrayIcon();
-
+            InitBannerClient();
         }
+
+        private void InitBannerClient()
+        {
+            _uiThreadContext.Post(state => BannerClient.Setup(), this);
+        }
+
 
         private NotifyIcon BuildTrayIcon()
         {

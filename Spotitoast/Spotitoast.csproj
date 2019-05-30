@@ -33,9 +33,6 @@
     <ProjectReference Include="..\Spotitoast.Banner\Spotitoast.Banner.csproj" />
     <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
     <ProjectReference Include="..\Spotitoast.HotKeys\Spotitoast.HotKeys.csproj" />
-    <ProjectReference Include="..\Spotitoast.Spotify\Spotitoast.Spotify.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utils\" />
+    <ProjectReference Include="..\Spotitoast.Logic\Spotitoast.Logic.csproj" />
   </ItemGroup>
 </Project>
