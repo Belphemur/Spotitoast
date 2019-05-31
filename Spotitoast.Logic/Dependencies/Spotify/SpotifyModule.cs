@@ -10,7 +10,7 @@ namespace Spotitoast.Logic.Dependencies.Spotify
         public override void Load()
         {
             Bind<SpotifyClient>().To<SpotifyClient>().InSingletonScope();
-            Bind<ISpotifyPlayer>().To<SpotifyPlayer>().InSingletonScope();
+            Bind<ISpotifyNotifier>().To<SpotifyNotifier>().InSingletonScope();
         }
     }
 }

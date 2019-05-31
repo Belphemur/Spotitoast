@@ -25,7 +25,7 @@ namespace Spotitoast.Context
         private readonly HotkeysConfiguration _configuration;
 
         public SpotitoastContext(ConfigurationManager configurationManager, IActionFactory actionFactory,
-            ISpotifyPlayer spotifyClient)
+            ISpotifyNotifier spotifyClient)
         {
             _configurationManager = configurationManager;
             _trayIcon = BuildTrayIcon();
@@ -36,7 +36,7 @@ namespace Spotitoast.Context
             RegisterBalloonTip(spotifyClient);
         }
 
-        private void RegisterBalloonTip(ISpotifyPlayer spotifyClient)
+        private void RegisterBalloonTip(ISpotifyNotifier spotifyClient)
         {
             spotifyClient.TrackLiked.Subscribe(track =>
             {
@@ -53,7 +53,7 @@ namespace Spotitoast.Context
             });
         }
 
-        private static void RegisterBanner(ISpotifyPlayer spotifyClient)
+        private static void RegisterBanner(ISpotifyNotifier spotifyClient)
         {
             spotifyClient.TrackPlayed.Subscribe(track =>
             {

@@ -6,13 +6,13 @@ using Spotitoast.Spotify.Client;
 
 namespace Spotitoast.Logic.Business.Player
 {
-    public class SpotifyPlayer : ISpotifyPlayer
+    public class SpotifyNotifier : ISpotifyNotifier
     {
         public IObservable<ITrack> TrackPlayed { get; }
         public IObservable<ITrack> TrackLiked { get; }
         public IObservable<ITrack> TrackDisliked { get; }
 
-        public SpotifyPlayer(SpotifyClient client)
+        public SpotifyNotifier(SpotifyClient client)
         {
             TrackPlayed = client.PlayedTrack.Select(track => new TrackAdapter(track)).AsObservable();
             TrackLiked = client.TrackLiked.Select(track => new TrackAdapter(track)).AsObservable();
