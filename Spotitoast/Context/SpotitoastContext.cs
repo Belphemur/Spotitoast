@@ -19,7 +19,6 @@ namespace Spotitoast.Context
     public class SpotitoastContext : ApplicationContext
     {
         private readonly NotifyIcon _trayIcon;
-        private readonly SynchronizationContext _uiThreadContext = new WindowsFormsSynchronizationContext();
 
         private readonly ConfigurationManager _configurationManager;
         private readonly HotkeysConfiguration _configuration;
@@ -84,7 +83,7 @@ namespace Spotitoast.Context
 
         private void InitBannerClient()
         {
-            _uiThreadContext.Post(state => BannerClient.Setup(), this);
+            new WindowsFormsSynchronizationContext().Post(state => BannerClient.Setup(), this);
         }
 
 
