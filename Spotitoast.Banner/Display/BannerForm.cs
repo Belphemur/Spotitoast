@@ -13,6 +13,7 @@
 ********************************************************************/
 
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -37,6 +38,10 @@ namespace Spotitoast.Banner.Display
         {
             InitializeComponent();
 
+            MouseEnter += (sender, args) => { _timerHide?.Stop(); };
+
+            MouseLeave += (sender, args) => { _timerHide?.Start(); };
+
             Location = new Point(50, 60);
         }
 
@@ -50,10 +55,10 @@ namespace Spotitoast.Banner.Display
         {
             get
             {
-                CreateParams p = base.CreateParams;
-                p.ExStyle |= 0x08000000; // WS_EX_NOACTIVATE
-                p.ExStyle |= 0x00000008; // WS_EX_TOPMOST
-                return p;
+                var @params = base.CreateParams;
+                @params.ExStyle |= 0x08000000; // WS_EX_NOACTIVATE
+                @params.ExStyle |= 0x00000008; // WS_EX_TOPMOST
+                return @params;
             }
         }
 
@@ -77,7 +82,6 @@ namespace Spotitoast.Banner.Display
             {
                 pbxLogo.Image = data.Image;
             }
-              
 
 
             _hiding = false;
@@ -125,6 +129,5 @@ namespace Spotitoast.Banner.Display
                 Dispose();
             }
         }
-
     }
 }
