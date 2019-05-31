@@ -12,7 +12,7 @@ namespace Spotitoast.Logic.Model.Song.Adapter
         private readonly Uri _albumArt;
         private Image _artImage;
 
-        public Image Art => _artImage ??= _albumArt.AsImage();
+        public Image Art => _artImage ??= _albumArt.DownloadImage();
         public string Name { get; }
         public DateTime ReleaseDate { get; }
 

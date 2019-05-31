@@ -12,7 +12,7 @@ namespace Spotitoast.Logic.Framework.Extensions
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static Image AsImage(this Uri uri)
+        public static Image DownloadImage(this Uri uri)
         {
             using var wc = new WebClient();
             using var imgStream = new MemoryStream(wc.DownloadData(uri));
