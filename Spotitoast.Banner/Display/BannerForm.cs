@@ -38,9 +38,16 @@ namespace Spotitoast.Banner.Display
         {
             InitializeComponent();
 
-            MouseEnter += (sender, args) => { _timerHide?.Stop(); };
+            MouseEnter += (sender, args) =>
+            {
+                _timerHide?.Stop();
+            };
 
-            MouseLeave += (sender, args) => { _timerHide?.Start(); };
+            MouseLeave += (sender, args) =>
+            {
+                if (ClientRectangle.Contains(PointToClient(Control.MousePosition))) return;
+                _timerHide?.Start();
+            };
 
             Location = new Point(50, 60);
         }
