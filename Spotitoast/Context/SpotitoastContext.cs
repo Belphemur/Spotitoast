@@ -40,14 +40,14 @@ namespace Spotitoast.Context
             spotifyClient.TrackLiked.Subscribe(track =>
             {
                 _trayIcon.BalloonTipTitle = "Spotitoast liked 💖";
-                _trayIcon.BalloonTipText = $@"{track.Name} - {track.Album.Name}";
+                _trayIcon.BalloonTipText = $@"{track.Name} - {track.ArtistsDisplay}";
                 _trayIcon.ShowBalloonTip(1000);
             });
 
             spotifyClient.TrackDisliked.Subscribe(track =>
             {
                 _trayIcon.BalloonTipTitle = "Spotitoast disliked 🖤";
-                _trayIcon.BalloonTipText = $@"{track.Name} - {track.Album.Name}";
+                _trayIcon.BalloonTipText = $@"{track.Name} - {track.ArtistsDisplay}";
                 _trayIcon.ShowBalloonTip(1000);
             });
         }
@@ -60,7 +60,7 @@ namespace Spotitoast.Context
                 {
                     Title = track.Name,
                     Text = track.Album.Name,
-                    SubText = string.Join(", ", track.Artists),
+                    SubText = track.ArtistsDisplay,
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 };
 

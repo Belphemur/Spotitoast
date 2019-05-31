@@ -7,6 +7,7 @@ namespace Spotitoast.Logic.Model.Song.Adapter
     public class TrackAdapter : ITrack
     {
         public IReadOnlyCollection<string> Artists { get; }
+        public string ArtistsDisplay => string.Join(", ", Artists);
         public string Name { get; }
         public IAlbum Album { get; }
 
