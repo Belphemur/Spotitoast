@@ -16,7 +16,6 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Net;
-using Spotitoast.Banner.ExtensionMethods;
 
 namespace Spotitoast.Banner.Model
 {

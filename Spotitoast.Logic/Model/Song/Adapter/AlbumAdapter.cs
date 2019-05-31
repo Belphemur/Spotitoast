@@ -9,7 +9,10 @@ namespace Spotitoast.Logic.Model.Song.Adapter
 {
     public class AlbumAdapter : IAlbum
     {
-        public Image Art { get; }
+        private readonly Uri _albumArt;
+        private Image _artImage;
+
+        public Image Art => _artImage ??= _albumArt.AsImage();
         public string Name { get; }
         public DateTime ReleaseDate { get; }
 
@@ -17,7 +20,12 @@ namespace Spotitoast.Logic.Model.Song.Adapter
         {
             Name = album.Name;
             ReleaseDate = DateTime.Parse(album.ReleaseDate);
-            Art = new Uri(album.Images.First().Url).AsImage();
+            _albumArt = new Uri(album.Images.First().Url);
+        }
+
+        public void Dispose()
+        {
+            _artImage?.Dispose();
         }
     }
 }

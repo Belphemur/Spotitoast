@@ -73,8 +73,6 @@ namespace Spotitoast.Banner.Display
                 _timerHide.Enabled = false;
             }
 
-            pbxLogo.Image?.Dispose();
-
             if (data.Image != null)
             {
                 pbxLogo.Image = data.Image;

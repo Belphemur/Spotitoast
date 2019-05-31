@@ -37,7 +37,7 @@ namespace Spotitoast
                 var artists = string.Join(", ", track.Artists.Select(artist => artist.Name));
                 var imageUrl = track.Album.Images.First().Url;
                 mainForm.UpdateTrackLabel(trackName);
-                var bannerData = new BannerData(imageUrl, new Size(100, 100))
+                var bannerData = new BannerData()
                 {
                     Title = trackName,
                     Text = track.Album.Name,

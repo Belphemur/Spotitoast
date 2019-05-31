@@ -30,6 +30,9 @@
     <EmbeddedResource Include="Resources\spotify.ico" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Spotitoast.Banner\Spotitoast.Banner.csproj" />
     <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
     <ProjectReference Include="..\Spotitoast.HotKeys\Spotitoast.HotKeys.csproj" />

@@ -10,6 +10,7 @@ using Spotitoast.Banner.Model;
 using Spotitoast.Configuration;
 using Spotitoast.HotKeys.Handler;
 using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Player;
 using Spotitoast.Spotify.Client;
 
 namespace Spotitoast.Context
@@ -23,7 +24,7 @@ namespace Spotitoast.Context
         private readonly HotkeysConfiguration _configuration;
 
         public SpotitoastContext(ConfigurationManager configurationManager, IActionFactory actionFactory,
-            SpotifyClient spotifyClient)
+            ISpotifyPlayer spotifyClient)
         {
             _configurationManager = configurationManager;
             _trayIcon = BuildTrayIcon();
@@ -34,7 +35,7 @@ namespace Spotitoast.Context
             RegisterBalloonTip(spotifyClient);
         }
 
-        private void RegisterBalloonTip(SpotifyClient spotifyClient)
+        private void RegisterBalloonTip(ISpotifyPlayer spotifyClient)
         {
             spotifyClient.TrackLiked.Subscribe(track =>
             {
@@ -49,18 +50,16 @@ namespace Spotitoast.Context
             });
         }
 
-        private static void RegisterBanner(SpotifyClient spotifyClient)
+        private static void RegisterBanner(ISpotifyPlayer spotifyClient)
         {
-            spotifyClient.PlayedTrack.Subscribe(track =>
+            spotifyClient.TrackPlayed.Subscribe(track =>
             {
-                var trackName = track.Name;
-                var artists = string.Join(", ", track.Artists.Select(artist => artist.Name));
-                var imageUrl = track.Album.Images.First().Url;
-                var bannerData = new BannerData(imageUrl, new Size(100, 100))
+                var bannerData = new BannerData()
                 {
-                    Title = trackName,
+                    Title = track.Name,
                     Text = track.Album.Name,
-                    SubText = artists
+                    SubText = string.Join(", ",track.Artists),
+                    Image = track.Album.Art
                 };
 
                 BannerClient.ShowNotification(bannerData);

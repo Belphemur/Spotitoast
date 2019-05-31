@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Spotitoast.Logic.Model.Song
 {
-    public interface IAlbum
+    public interface IAlbum : IDisposable
     {
         /// <summary>
         /// Album Art

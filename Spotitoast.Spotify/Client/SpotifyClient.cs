@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Models;
@@ -28,6 +29,7 @@ namespace Spotitoast.Spotify.Client
         private readonly ISubject<FullTrack> _playedTrackSubject = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackLiked = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackDisliked = new Subject<FullTrack>();
+        private readonly Timer _timer;
 
         public IObservable<FullTrack> PlayedTrack => _playedTrackSubject.AsObservable();
         public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
@@ -44,7 +46,7 @@ namespace Spotitoast.Spotify.Client
             var auth = new SpotifyAuth(configurationManager);
             auth.TokenUpdated += AuthOnTokenUpdated;
             auth.RefreshAccessToken();
-            InitTimerTrack();
+            _timer = InitTimerTrack();
         }
 
         private void AuthOnTokenUpdated(object sender, SpotifyAuth.TokenUpdatedEventArg e)
@@ -53,9 +55,9 @@ namespace Spotitoast.Spotify.Client
             _spotifyWebClient.TokenType = e.NewToken.TokenType;
         }
 
-        private void InitTimerTrack()
+        private Timer InitTimerTrack()
         {
-            var timer = new System.Threading.Timer(
+            return new Timer(
                 e => CheckCurrentPlayedTrack(),
                 null,
                 TimeSpan.FromSeconds(1),

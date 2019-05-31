@@ -1,4 +1,5 @@
 ﻿using Ninject.Modules;
+using Spotitoast.Logic.Business.Player;
 using Spotitoast.Spotify.Client;
 
 namespace Spotitoast.Logic.Dependencies.Spotify
@@ -9,6 +10,7 @@ namespace Spotitoast.Logic.Dependencies.Spotify
         public override void Load()
         {
             Bind<SpotifyClient>().To<SpotifyClient>().InSingletonScope();
+            Bind<ISpotifyPlayer>().To<SpotifyPlayer>().InSingletonScope();
         }
     }
 }
