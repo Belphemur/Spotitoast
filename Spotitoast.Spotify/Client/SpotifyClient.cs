@@ -58,7 +58,7 @@ namespace Spotitoast.Spotify.Client
             var timer = new System.Threading.Timer(
                 e => CheckCurrentPlayedTrack(),
                 null,
-                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(_configuration.CheckCurrentlyPlayedSeconds));
         }
 
@@ -157,18 +157,19 @@ namespace Spotitoast.Spotify.Client
                 return loveState;
             }
 
-            var result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
+            var result = await _spotifyWebClient.SkipPlaybackToNextAsync();
+
             if (result.HasError())
             {
                 return ActionResult.Error;
             }
 
-            result = await _spotifyWebClient.SkipPlaybackToNextAsync();
-
-                  if (result.HasError())
+            result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
+            if (result.HasError())
             {
                 return ActionResult.Error;
             }
+
 
             _trackDisliked.OnNext(track);
             return ActionResult.Success;

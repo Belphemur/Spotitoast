@@ -5,6 +5,7 @@ using Ninject;
 using Ninject.Syntax;
 using Spotitoast.Logic.Dependencies;
 using Spotitoast.Logic.Framework;
+using Spotitoast.Logic.Framework.Factory;
 
 namespace Spotitoast.Logic.Business.Action
 {

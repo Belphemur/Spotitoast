@@ -54,19 +54,6 @@ namespace Spotitoast.Banner.Model
         {
         }
 
-        /// <summary>
-        /// Banner with image coming from an URL
-        /// </summary>
-        /// <param name="imageUrl">Valid URL to the image</param>
-        /// <param name="imageSize">New size of the image</param>
-        public BannerData(string imageUrl, Size imageSize) : this()
-        {
-            using var wc = new WebClient();
-            using var imgStream = new MemoryStream(wc.DownloadData(imageUrl));
-            using var fromStream = Image.FromStream(imgStream);
-            Image = fromStream.ResizeImage(imageSize);
-        }
-
         public void Dispose()
         {
             Image?.Dispose();

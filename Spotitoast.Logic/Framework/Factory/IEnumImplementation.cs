@@ -1,4 +1,4 @@
-﻿namespace Spotitoast.Logic.Framework
+﻿namespace Spotitoast.Logic.Framework.Factory
 {
     public interface IEnumImplementation<out T>
     {

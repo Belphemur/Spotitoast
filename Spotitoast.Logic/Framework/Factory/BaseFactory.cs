@@ -2,9 +2,8 @@
 using System.Linq;
 using Ninject;
 using Ninject.Syntax;
-using Spotitoast.Logic.Business.Action;
 
-namespace Spotitoast.Logic.Framework
+namespace Spotitoast.Logic.Framework.Factory
 {
     public class BaseFactory<TKey, TImpl> : IFactory<TKey, TImpl> where TImpl: IEnumImplementation<TKey>
     {

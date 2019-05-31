@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Spotitoast.Logic.Framework;
+using Spotitoast.Logic.Framework.Factory;
 using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action

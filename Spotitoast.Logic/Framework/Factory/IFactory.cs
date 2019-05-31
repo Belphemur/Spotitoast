@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Spotitoast.Logic.Framework
+namespace Spotitoast.Logic.Framework.Factory
 {
     public interface IFactory<in TKey, out TImpl> where TImpl : IEnumImplementation<TKey>
     {
