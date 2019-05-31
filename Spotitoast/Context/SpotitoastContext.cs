@@ -54,14 +54,14 @@ namespace Spotitoast.Context
 
         private static void RegisterBanner(ISpotifyNotifier spotifyClient)
         {
-            spotifyClient.TrackPlayed.Subscribe(track =>
+            spotifyClient.TrackPlayed.Subscribe(async track =>
             {
                 var bannerData = new BannerData()
                 {
                     Title = track.Name,
                     Text = track.Album.Name,
                     SubText = string.Join(", ", track.Artists),
-                    Image = track.Album.Art.ResizeImage(new Size(100, 100))
+                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 };
 
                 BannerClient.ShowNotification(bannerData);

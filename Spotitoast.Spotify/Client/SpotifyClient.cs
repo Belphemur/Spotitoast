@@ -153,12 +153,6 @@ namespace Spotitoast.Spotify.Client
             var track = _playbackContext?.Item;
             var trackId = track?.Id;
 
-            var loveState = await CheckLoveState(trackId);
-            if (loveState != ActionResult.AlreadyLoved)
-            {
-                return loveState;
-            }
-
             var result = await _spotifyWebClient.SkipPlaybackToNextAsync();
 
             if (result.HasError())
@@ -166,6 +160,12 @@ namespace Spotitoast.Spotify.Client
                 return ActionResult.Error;
             }
 
+            var loveState = await CheckLoveState(trackId);
+            if (loveState != ActionResult.AlreadyLoved)
+            {
+                return loveState;
+            }
+          
             result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
             if (result.HasError())
             {

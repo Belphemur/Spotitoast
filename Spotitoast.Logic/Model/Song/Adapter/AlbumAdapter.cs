@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SpotifyAPI.Web.Models;
 using Spotitoast.Logic.Framework.Extensions;
 using Image = System.Drawing.Image;
@@ -10,9 +11,9 @@ namespace Spotitoast.Logic.Model.Song.Adapter
     public class AlbumAdapter : IAlbum
     {
         private readonly Uri _albumArt;
-        private Image _artImage;
+        private Task<Image> _artImage;
 
-        public Image Art => _artImage ??= _albumArt.DownloadImage();
+        public Task<Image> Art => _artImage ??= _albumArt.DownloadImage();
         public string Name { get; }
         public DateTime ReleaseDate { get; }
 

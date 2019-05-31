@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace Spotitoast.Logic.Model.Song
 {
@@ -8,7 +9,7 @@ namespace Spotitoast.Logic.Model.Song
         /// <summary>
         /// Album Art
         /// </summary>
-        Image Art { get; }
+        Task<Image> Art { get; }
 
         /// <summary>
         /// Name of the album
