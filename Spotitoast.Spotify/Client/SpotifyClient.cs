@@ -183,15 +183,41 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> Resume()
         {
+            var deviceId = _playbackContext?.Device?.Id;
+            return await ResumeInternal(deviceId);
+        }
+
+        private async Task<ActionResult> ResumeInternal(string deviceId)
+        {
             var result =
-                await _spotifyWebClient.ResumePlaybackAsync(_playbackContext?.Device?.Id, "",
+                await _spotifyWebClient.ResumePlaybackAsync(deviceId, "",
                     null, "", 0);
+
+            if (deviceId == null && result.HasError() && result.Error.Status == 404)
+            {
+                var firstDevice = await GetFirstDevice();
+                if (firstDevice == null)
+                {
+                    return ActionResult.Error;
+                }
+                return await ResumeInternal(firstDevice.Id);
+            }
+
             if (result.HasError())
+            {
                 return ActionResult.Error;
+            }
+
 
             if (_playbackContext != null) _playbackContext.IsPlaying = true;
 
             return ActionResult.Success;
+        }
+
+        private async Task<Device> GetFirstDevice()
+        {
+            var devices = await _spotifyWebClient.GetDevicesAsync();
+            return devices.HasError() ? null : devices.Devices.First(device => device.Type.ToLower() == "computer");
         }
 
         /// <summary>

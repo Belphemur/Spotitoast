@@ -11,6 +11,7 @@ using Spotitoast.Configuration;
 using Spotitoast.HotKeys.Handler;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Logic.Business.Player;
+using Spotitoast.Logic.Framework.Extensions;
 using Spotitoast.Spotify.Client;
 
 namespace Spotitoast.Context
@@ -39,13 +40,15 @@ namespace Spotitoast.Context
         {
             spotifyClient.TrackLiked.Subscribe(track =>
             {
-                _trayIcon.BalloonTipText = $@"💖 {track.Name}";
+                _trayIcon.BalloonTipTitle = "Spotitoast liked 💖";
+                _trayIcon.BalloonTipText = $@"{track.Name} - {track.Album.Name}";
                 _trayIcon.ShowBalloonTip(1000);
             });
 
             spotifyClient.TrackDisliked.Subscribe(track =>
             {
-                _trayIcon.BalloonTipText = $@"🖤 {track.Name}";
+                _trayIcon.BalloonTipTitle = "Spotitoast disliked 🖤";
+                _trayIcon.BalloonTipText = $@"{track.Name} - {track.Album.Name}";
                 _trayIcon.ShowBalloonTip(1000);
             });
         }
@@ -58,8 +61,8 @@ namespace Spotitoast.Context
                 {
                     Title = track.Name,
                     Text = track.Album.Name,
-                    SubText = string.Join(", ",track.Artists),
-                    Image = track.Album.Art
+                    SubText = string.Join(", ", track.Artists),
+                    Image = track.Album.Art.ResizeImage(new Size(100, 100))
                 };
 
                 BannerClient.ShowNotification(bannerData);
