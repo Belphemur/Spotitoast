@@ -160,6 +160,8 @@ namespace Spotitoast.Spotify.Client
                 return ActionResult.Error;
             }
 
+            _trackDisliked.OnNext(track);
+
             var loveState = await CheckLoveState(trackId);
             if (loveState != ActionResult.AlreadyLoved)
             {
@@ -167,14 +169,7 @@ namespace Spotitoast.Spotify.Client
             }
           
             result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
-            if (result.HasError())
-            {
-                return ActionResult.Error;
-            }
-
-
-            _trackDisliked.OnNext(track);
-            return ActionResult.Success;
+            return result.HasError() ? ActionResult.Error : ActionResult.Success;
         }
 
         /// <summary>
