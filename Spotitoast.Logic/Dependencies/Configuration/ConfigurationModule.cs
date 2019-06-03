@@ -2,6 +2,7 @@
 using System.IO;
 using Ninject.Modules;
 using Spotitoast.Configuration;
+using Spotitoast.Spotify.Configuration;
 
 namespace Spotitoast.Logic.Dependencies.Configuration
 {
@@ -13,6 +14,8 @@ namespace Spotitoast.Logic.Dependencies.Configuration
             var configManager = new ConfigurationManager(Path.Combine(folderPath, "Spotitoast"));
 
             Bind<ConfigurationManager>().ToConstant(configManager);
+            Bind<SpotifyAuthConfiguration>().ToMethod(context => configManager.LoadConfiguration<SpotifyAuthConfiguration>().Result).InSingletonScope();
+            Bind<SpotifyWebClientConfiguration>().ToMethod(context => configManager.LoadConfiguration<SpotifyWebClientConfiguration>().Result).InSingletonScope();
         }
     }
 }

@@ -2,15 +2,24 @@
 
 namespace Spotitoast.Spotify.Configuration
 {
-    public class SpotifyWebClientConfiguration : IConfiguration
+    public class SpotifyWebClientConfiguration : BaseConfiguration
     {
-        public string FileLocation { get; set; }
 
+        private int _checkCurrentlyPlayedSeconds = 15;
         /// <summary>
         /// Check for a new Currently played track in seconds.
         /// </summary>
-        public int CheckCurrentlyPlayedSeconds { get; set; } = 15;
-        public void Migrate()
+        public int CheckCurrentlyPlayedSeconds
+        {
+            get => _checkCurrentlyPlayedSeconds;
+            set
+            {
+                _checkCurrentlyPlayedSeconds = value;
+                PropertyChanged();
+            }
+        }
+
+        public override void Migrate()
         {
         }
     }

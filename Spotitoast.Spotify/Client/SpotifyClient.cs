@@ -19,7 +19,7 @@ namespace Spotitoast.Spotify.Client
     public class SpotifyClient
     {
         private readonly SpotifyWebAPI _spotifyWebClient;
-        private readonly SpotifyWebClientConfiguration _configuration;
+        private readonly SpotifyWebClientConfiguration _webConfiguration;
 
         private PlaybackContext _playbackContext;
 
@@ -35,15 +35,15 @@ namespace Spotitoast.Spotify.Client
         public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
         public IObservable<FullTrack> TrackDisliked => _trackDisliked.AsObservable();
 
-        public SpotifyClient(ConfigurationManager configurationManager)
+        public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration)
         {
             _spotifyWebClient = new SpotifyWebAPI()
             {
                 UseAuth = true,
                 UseAutoRetry = true
             };
-            _configuration = configurationManager.LoadConfiguration<SpotifyWebClientConfiguration>();
-            var auth = new SpotifyAuth(configurationManager);
+            _webConfiguration = webConfiguration;
+            var auth = new SpotifyAuth(authConfiguration);
             auth.TokenUpdated += AuthOnTokenUpdated;
             auth.RefreshAccessToken();
             _timer = InitTimerTrack();
@@ -61,7 +61,7 @@ namespace Spotitoast.Spotify.Client
                 e => CheckCurrentPlayedTrack(),
                 null,
                 TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(_configuration.CheckCurrentlyPlayedSeconds));
+                TimeSpan.FromSeconds(_webConfiguration.CheckCurrentlyPlayedSeconds));
         }
 
         private async void CheckCurrentPlayedTrack()

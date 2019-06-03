@@ -21,7 +21,6 @@ namespace Spotitoast.Spotify.Client.Auth
             public Token NewToken { get; }
         }
 
-        private readonly ConfigurationManager _configurationManager;
         private readonly SpotifyAuthConfiguration _config;
         private readonly TokenSwapAuth _tokenSwapAuth;
         private readonly Timer _refreshTimer = new Timer();
@@ -37,10 +36,9 @@ namespace Spotitoast.Spotify.Client.Auth
         /// </summary>
         public event EventHandler<TokenUpdatedEventArg> TokenUpdated;
 
-        public SpotifyAuth(ConfigurationManager configurationManager)
+        public SpotifyAuth(SpotifyAuthConfiguration configuration)
         {
-            _configurationManager = configurationManager;
-            _config = _configurationManager.LoadConfiguration<SpotifyAuthConfiguration>();
+            _config = configuration;
             _tokenSwapAuth = new TokenSwapAuth(
                 exchangeServerUri: _config.ExchangeUrl,
                 serverUri: _config.InnerServerUrl,
@@ -59,9 +57,7 @@ namespace Spotitoast.Spotify.Client.Auth
             _tokenSwapAuth.AuthReceived += async (sender, response) =>
             {
                 _config.LastToken = await _tokenSwapAuth.ExchangeCodeAsync(response.Code);
-
-
-                _configurationManager.SaveConfiguration(_config);
+               
                 TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
                 _tokenSwapAuth.Stop();
 
@@ -95,9 +91,6 @@ namespace Spotitoast.Spotify.Client.Auth
             _config.LastToken.AccessToken = token.AccessToken;
             _config.LastToken.ExpiresIn = token.ExpiresIn;
             _config.LastToken.CreateDate = token.CreateDate;
-
-
-            _configurationManager.SaveConfiguration(_config);
 
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
             var timeToRefresh = _config.LastToken.ExpiresIn;
