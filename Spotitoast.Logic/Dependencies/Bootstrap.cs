@@ -15,6 +15,6 @@ namespace Spotitoast.Logic.Dependencies
             new SpotifyModule(),
         };
 
-        public static IKernel Kernel => new StandardKernel(_modules);
+        public static IKernel Kernel = new StandardKernel(_modules);
     }
 }
