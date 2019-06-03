@@ -1,5 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Spotitoast.Configuration
@@ -21,7 +24,7 @@ namespace Spotitoast.Configuration
         /// Load a ConfigurationManager from its file
         /// </summary>
         /// <returns>The loaded configuration if the file exists, else a new instance of the configuration</returns>
-        public T LoadConfiguration<T>() where T : IConfiguration, new()
+        public async Task<T> LoadConfiguration<T>() where T : BaseConfiguration, new()
         {
             var filePath = GetFilePath<T>();
             T obj;
@@ -32,7 +35,10 @@ namespace Spotitoast.Configuration
             }
             else
             {
-                var contents = File.ReadAllText(filePath);
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var reader = new StreamReader(stream);
+                var contents = await reader.ReadToEndAsync();
+
                 obj = JsonConvert.DeserializeObject<T>(contents);
                 if (obj == null)
                 {
@@ -41,12 +47,17 @@ namespace Spotitoast.Configuration
                     obj = new T();
                 }
             }
+
             obj.FileLocation = filePath;
             obj.Migrate();
+            obj.PropertyUpdated
+                .Distinct()
+                .Throttle(TimeSpan.FromMilliseconds(200))
+                .Subscribe(property => SaveConfiguration(obj));
             return obj;
         }
 
-        private string GetFilePath<T>() where T : IConfiguration, new()
+        private string GetFilePath<T>() where T : BaseConfiguration, new()
         {
             var filePath = Path.Combine(_root, typeof(T).Name + ".json");
             return filePath;
@@ -56,14 +67,24 @@ namespace Spotitoast.Configuration
         /// Save the configuration in a json file.
         /// </summary>
         /// <param name="configuration">configuration object to save</param>
-        public void SaveConfiguration<T>(T configuration) where T : IConfiguration, new()
+        public async void SaveConfiguration<T>(T configuration) where T : BaseConfiguration, new()
         {
-            configuration.FileLocation = null;
-            var serializer = new JsonSerializer { NullValueHandling = NullValueHandling.Ignore };
-            using (var writer = new JsonTextWriter(new StreamWriter(GetFilePath<T>())))
-            {
-                serializer.Serialize(writer, configuration);
-            }
+            using var file = File.Open(GetFilePath<T>(), FileMode.Create, FileAccess.Write);
+            using var memoryStream = new MemoryStream();
+
+            using var writer = new StreamWriter(memoryStream);
+            var serializer = JsonSerializer.CreateDefault();
+
+            serializer.Serialize(writer, configuration);
+
+            await writer.FlushAsync().ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            await memoryStream.CopyToAsync(file).ConfigureAwait(false);
+
+
+            await file.FlushAsync().ConfigureAwait(false);
         }
     }
 }
