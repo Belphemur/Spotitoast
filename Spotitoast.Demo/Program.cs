@@ -5,10 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Ninject;
 using Spotitoast.Banner.Client;
 using Spotitoast.Banner.Model;
 using Spotitoast.Configuration;
-using Spotitoast.Spotify.Client;
+using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Player;
+using Spotitoast.Logic.Dependencies;
 
 namespace Spotitoast
 {
@@ -25,23 +28,20 @@ namespace Spotitoast
 
             var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            var configManager = new ConfigurationManager(Path.Combine(folderPath, "Spotitoast"));
+            var client = Bootstrap.Kernel.Get<ISpotifyNotifier>();
+            var mainForm = Bootstrap.Kernel.Get<Form1>();
 
-            var client = new SpotifyClient(configManager);
-
-            var mainForm = new Form1(client);
-
-            client.PlayedTrack.Subscribe(track =>
+            client.TrackPlayed.Subscribe(async track =>
             {
                 var trackName = track.Name;
-                var artists = string.Join(", ", track.Artists.Select(artist => artist.Name));
-                var imageUrl = track.Album.Images.First().Url;
+                var artists = track.ArtistsDisplay;
                 mainForm.UpdateTrackLabel(trackName);
                 var bannerData = new BannerData()
                 {
                     Title = trackName,
                     Text = track.Album.Name,
-                    SubText = artists
+                    SubText = artists,
+                    Image= await track.Album.Art
                 };
 
                 BannerClient.ShowNotification(bannerData);

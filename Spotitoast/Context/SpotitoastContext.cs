@@ -20,16 +20,14 @@ namespace Spotitoast.Context
     {
         private readonly NotifyIcon _trayIcon;
 
-        private readonly ConfigurationManager _configurationManager;
         private readonly HotkeysConfiguration _configuration;
 
-        public SpotitoastContext(ConfigurationManager configurationManager, IActionFactory actionFactory,
+        public SpotitoastContext(HotkeysConfiguration configuration, IActionFactory actionFactory,
             ISpotifyNotifier spotifyClient)
         {
-            _configurationManager = configurationManager;
             _trayIcon = BuildTrayIcon();
             InitBannerClient();
-            _configuration = _configurationManager.LoadConfiguration<HotkeysConfiguration>();
+            _configuration = configuration;
             RegisterHotkeys(actionFactory);
             RegisterBanner(spotifyClient);
             RegisterBalloonTip(spotifyClient);

@@ -21,6 +21,9 @@ namespace Spotitoast
         [STAThread]
         private static void Main()
         {
+            Bootstrap.Kernel.Bind<HotkeysConfiguration>().ToMethod(context =>
+                    (context.Kernel.Get<ConfigurationManager>()).LoadConfiguration<HotkeysConfiguration>().Result)
+                .InSingletonScope();
 
             HotKeyHandler.Start();
 

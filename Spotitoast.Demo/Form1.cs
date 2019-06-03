@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Spotitoast.Banner.Client;
-using Spotitoast.Spotify.Client;
+using Spotitoast.Logic.Business.Action;
 
 namespace Spotitoast
 {
@@ -16,8 +16,8 @@ namespace Spotitoast
     {
         private delegate void SetString(string str);
 
-        private SpotifyClient _client;
-        public Form1(SpotifyClient spotifyClient)
+        private IActionFactory _client;
+        public Form1(IActionFactory spotifyClient)
         {
             _client = spotifyClient;
             BannerClient.Setup();
@@ -37,23 +37,17 @@ namespace Spotitoast
 
         private void LoveButton_Click(object sender, EventArgs e)
         {
-            _client.LikePlayedTrack();
+            _client.Get(ActionFactory.PlayerAction.Like).Execute();
         }
 
         private void UnloveButton_Click(object sender, EventArgs e)
         {
-            _client.DislikePlayedTrack();
+            _client.Get(ActionFactory.PlayerAction.Dislike).Execute();
         }
 
         private void PlayPauseButton_Click(object sender, EventArgs e)
         {
-            if (_client.IsPlaying)
-            {
-                _client.Pause();
-                return;
-            }
-
-            _client.Resume();
+            _client.Get(ActionFactory.PlayerAction.TogglePlayback).Execute();
         }
     }
 }
