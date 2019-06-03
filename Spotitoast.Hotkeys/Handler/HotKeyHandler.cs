@@ -134,7 +134,7 @@ namespace Spotitoast.HotKeys.Handler
                     _instance._registeredHotkeys.Add(hotKeys, id);
                     // register the hot key.
                     return NativeMethods.RegisterHotKey(_instance.Handle, id, (uint)hotKeys.Modifier,
-                       (uint)hotKeys.Keys);
+                       (uint)hotKeys.Key);
 
                 }));
             }
@@ -206,7 +206,7 @@ namespace Spotitoast.HotKeys.Handler
 
         private void ProcessHotKeyEvent(Message m)
         {
-            var key = (Keys)((ConvertLParam(m.LParam) >> 16) & 0xFFFF);
+            var key = (Model.HotKeys.Keys)((ConvertLParam(m.LParam) >> 16) & 0xFFFF);
             var modifier = (Model.HotKeys.ModifierKeys)(ConvertLParam(m.LParam) & 0xFFFF);
 
             _hotkeyPressedSubject.OnNext(new Model.HotKeys(key, modifier));
