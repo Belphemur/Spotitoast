@@ -25,6 +25,10 @@ namespace Spotitoast.Configuration
                     new HotKeys.Model.HotKeys(Spotitoast.HotKeys.Model.HotKeys.Keys.PageDown, Spotitoast.HotKeys.Model.HotKeys.ModifierKeys.Control),
                     ActionFactory.PlayerAction.Dislike
                 },
+                {
+                    new HotKeys.Model.HotKeys(Spotitoast.HotKeys.Model.HotKeys.Keys.End, Spotitoast.HotKeys.Model.HotKeys.ModifierKeys.Control),
+                    ActionFactory.PlayerAction.CurrentlyPlaying
+                },
             };
 
         [UsedImplicitly]

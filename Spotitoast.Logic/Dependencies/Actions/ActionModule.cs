@@ -12,6 +12,7 @@ namespace Spotitoast.Logic.Dependencies.Actions
             Bind<IAction>().To<LikeAction>();
             Bind<IAction>().To<DislikeAction>();
             Bind<IAction>().To<TogglePlayback>();
+            Bind<IAction>().To<CurrentlyPlaying>();
         }
     }
 }

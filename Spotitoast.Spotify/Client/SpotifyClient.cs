@@ -58,13 +58,13 @@ namespace Spotitoast.Spotify.Client
         private Timer InitTimerTrack()
         {
             return new Timer(
-                e => CheckCurrentPlayedTrack(),
+                callback: async e => await CheckCurrentPlayedTrack(),
                 null,
                 TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(_webConfiguration.CheckCurrentlyPlayedSeconds));
         }
 
-        private async void CheckCurrentPlayedTrack()
+        private async Task<ActionResult> CheckCurrentPlayedTrack(bool forceNotify = false)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace Spotitoast.Spotify.Client
                 if (trackResponse.HasError())
                 {
                     Trace.WriteLine(trackResponse.Error.Message);
-                    return;
+                    return ActionResult.Error;
                 }
 
                 var oldTrack = _playbackContext?.Item;
@@ -83,10 +83,11 @@ namespace Spotitoast.Spotify.Client
 
                 if (playedTrack == null)
                 {
-                    return;
+                    return ActionResult.Error;
                 }
 
-                if (oldTrack == null
+                if (forceNotify
+                    || oldTrack == null
                     || playedTrack.Id != oldTrack.Id)
                 {
                     _playedTrackSubject.OnNext(playedTrack);
@@ -94,8 +95,9 @@ namespace Spotitoast.Spotify.Client
             }
             catch (Exception)
             {
-                // ignored
+                return ActionResult.Error;
             }
+            return ActionResult.Success;
         }
 
         /// <summary>
@@ -167,7 +169,7 @@ namespace Spotitoast.Spotify.Client
             {
                 return loveState;
             }
-          
+
             result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
             return result.HasError() ? ActionResult.Error : ActionResult.Success;
         }
@@ -195,6 +197,7 @@ namespace Spotitoast.Spotify.Client
                 {
                     return ActionResult.Error;
                 }
+
                 return await ResumeInternal(firstDevice.Id);
             }
 
@@ -229,6 +232,14 @@ namespace Spotitoast.Spotify.Client
             if (_playbackContext != null) _playbackContext.IsPlaying = false;
 
             return ActionResult.Success;
+        }
+        /// <summary>
+        /// Force checking for the current playing track
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ActionResult> ForceCheckCurrentlyPlaying()
+        {
+            return await CheckCurrentPlayedTrack(true);
         }
     }
 }

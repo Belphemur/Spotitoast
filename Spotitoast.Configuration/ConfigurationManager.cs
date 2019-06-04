@@ -33,7 +33,7 @@ namespace Spotitoast.Configuration
             if (!File.Exists(filePath))
             {
                 obj = new T();
-                SaveConfiguration(obj);
+                await SaveConfiguration(obj);
             }
             else
             {
@@ -55,7 +55,7 @@ namespace Spotitoast.Configuration
             obj.PropertyUpdated
                 .Distinct()
                 .Throttle(TimeSpan.FromMilliseconds(200))
-                .Subscribe(property => SaveConfiguration(obj));
+                .Subscribe(async property => await SaveConfiguration(obj));
             return obj;
         }
 
@@ -69,7 +69,7 @@ namespace Spotitoast.Configuration
         /// Save the configuration in a json file.
         /// </summary>
         /// <param name="configuration">configuration object to save</param>
-        public async void SaveConfiguration<T>(T configuration) where T : BaseConfiguration, new()
+        public async Task SaveConfiguration<T>(T configuration) where T : BaseConfiguration, new()
         {
             using var file = File.Open(GetFilePath<T>(), FileMode.Create, FileAccess.Write);
             using var memoryStream = _streamManager.GetStream();
