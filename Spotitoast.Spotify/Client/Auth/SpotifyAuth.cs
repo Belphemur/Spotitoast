@@ -57,7 +57,7 @@ namespace Spotitoast.Spotify.Client.Auth
             _tokenSwapAuth.AuthReceived += async (sender, response) =>
             {
                 _config.LastToken = await _tokenSwapAuth.ExchangeCodeAsync(response.Code);
-               
+
                 TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
                 _tokenSwapAuth.Stop();
 
@@ -66,8 +66,6 @@ namespace Spotitoast.Spotify.Client.Auth
 
                 RestartTimer(timeToRefresh);
             };
-
-            _tokenSwapAuth.OnAccessTokenExpired += (sender, args) => RefreshToken();
         }
 
         private void RestartTimer(double timeToRefresh)
@@ -85,12 +83,7 @@ namespace Spotitoast.Spotify.Client.Auth
                 RequestNewToken();
                 return;
             }
-
-            Debug.Assert(_config.LastToken != null, "_config.LastToken != null");
-
-            _config.LastToken.AccessToken = token.AccessToken;
-            _config.LastToken.ExpiresIn = token.ExpiresIn;
-            _config.LastToken.CreateDate = token.CreateDate;
+            _config.UpdateAccessToken(token);
 
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
             var timeToRefresh = _config.LastToken.ExpiresIn;
