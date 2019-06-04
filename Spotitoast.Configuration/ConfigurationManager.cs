@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.IO;
 using Newtonsoft.Json;
 
 namespace Spotitoast.Configuration
@@ -10,6 +11,7 @@ namespace Spotitoast.Configuration
     public class ConfigurationManager
     {
         private readonly string _root;
+        private readonly RecyclableMemoryStreamManager _streamManager = new RecyclableMemoryStreamManager();
 
         public ConfigurationManager(string root)
         {
@@ -70,7 +72,7 @@ namespace Spotitoast.Configuration
         public async void SaveConfiguration<T>(T configuration) where T : BaseConfiguration, new()
         {
             using var file = File.Open(GetFilePath<T>(), FileMode.Create, FileAccess.Write);
-            using var memoryStream = new MemoryStream();
+            using var memoryStream = _streamManager.GetStream();
 
             using var writer = new StreamWriter(memoryStream);
             var serializer = JsonSerializer.CreateDefault();
