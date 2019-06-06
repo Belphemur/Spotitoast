@@ -53,8 +53,7 @@ namespace Spotitoast.Configuration
             obj.FileLocation = filePath;
             obj.Migrate();
             obj.PropertyUpdated
-                .Distinct()
-                .Throttle(TimeSpan.FromMilliseconds(200))
+                .Throttle(TimeSpan.FromMilliseconds(500))
                 .Subscribe(async property => await SaveConfiguration(obj));
             return obj;
         }

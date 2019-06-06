@@ -68,6 +68,7 @@ namespace Spotitoast.Spotify.Client
         {
             try
             {
+                Trace.WriteLine("Checking for playing track");
                 var trackResponse = await _spotifyWebClient.GetPlayingTrackAsync();
 
                 if (trackResponse.HasError())
@@ -80,6 +81,8 @@ namespace Spotitoast.Spotify.Client
                 _playbackContext = trackResponse;
 
                 var playedTrack = _playbackContext?.Item;
+
+                Trace.WriteLine($"Track Found: ${playedTrack?.Id}");
 
                 if (playedTrack == null)
                 {
@@ -109,6 +112,7 @@ namespace Spotitoast.Spotify.Client
             var track = _playbackContext?.Item;
             var trackId = track?.Id;
 
+            Trace.WriteLine($"Loving ${trackId}.");
             var loveState = await CheckLoveState(trackId);
             if (loveState != ActionResult.NotLoved)
             {
@@ -118,8 +122,10 @@ namespace Spotitoast.Spotify.Client
             var result = await _spotifyWebClient.SaveTrackAsync(trackId);
             if (result.HasError())
             {
+                Trace.WriteLine(result.Error.Message);
                 return ActionResult.Error;
             }
+            Trace.WriteLine($"Track ${trackId} loved.");
 
             _trackLiked.OnNext(track);
             return ActionResult.Success;
@@ -154,11 +160,12 @@ namespace Spotitoast.Spotify.Client
         {
             var track = _playbackContext?.Item;
             var trackId = track?.Id;
-
+            Trace.WriteLine($"Dislinking ${trackId}.");
             var result = await _spotifyWebClient.SkipPlaybackToNextAsync();
 
             if (result.HasError())
             {
+                Trace.WriteLine(result.Error.Message);
                 return ActionResult.Error;
             }
 

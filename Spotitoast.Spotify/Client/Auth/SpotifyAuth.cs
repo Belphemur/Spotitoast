@@ -61,8 +61,7 @@ namespace Spotitoast.Spotify.Client.Auth
                 TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
                 _tokenSwapAuth.Stop();
 
-                Debug.Assert(_config.LastToken != null, "_config.LastToken != null");
-                var timeToRefresh = _config.LastToken.ExpiresIn;
+                var timeToRefresh = _config.LastToken?.ExpiresIn ?? 3600;
 
                 RestartTimer(timeToRefresh);
             };
@@ -83,11 +82,13 @@ namespace Spotitoast.Spotify.Client.Auth
                 RequestNewToken();
                 return;
             }
+
             _config.UpdateAccessToken(token);
 
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
             var timeToRefresh = _config.LastToken.ExpiresIn;
             RestartTimer(timeToRefresh);
+            Trace.WriteLine("Token Refreshed");
         }
 
         /// <summary>
