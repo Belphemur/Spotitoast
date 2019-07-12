@@ -30,6 +30,7 @@ namespace Spotitoast.Spotify.Client
         private readonly ISubject<FullTrack> _trackLiked = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackDisliked = new Subject<FullTrack>();
         private readonly Timer _timer;
+        private SpotifyAuth _authClient;
 
         public IObservable<FullTrack> PlayedTrack => _playedTrackSubject.AsObservable();
         public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
@@ -43,9 +44,9 @@ namespace Spotitoast.Spotify.Client
                 UseAutoRetry = true
             };
             _webConfiguration = webConfiguration;
-            var auth = new SpotifyAuth(authConfiguration);
-            auth.TokenUpdated += AuthOnTokenUpdated;
-            auth.RefreshAccessToken();
+            _authClient = new SpotifyAuth(authConfiguration);
+            _authClient.TokenUpdated += AuthOnTokenUpdated;
+            _authClient.RefreshAccessToken();
             _timer = InitTimerTrack();
         }
 
@@ -58,7 +59,14 @@ namespace Spotitoast.Spotify.Client
         private Timer InitTimerTrack()
         {
             return new Timer(
-                callback: async e => await CheckCurrentPlayedTrack(),
+                callback: async e =>
+                {
+                    var result = await CheckCurrentPlayedTrack();
+                    if (result == ActionResult.Error)
+                    {
+                        _authClient.RefreshAccessToken();
+                    }
+                },
                 null,
                 TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(_webConfiguration.CheckCurrentlyPlayedSeconds));
