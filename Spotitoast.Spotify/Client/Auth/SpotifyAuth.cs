@@ -24,6 +24,7 @@ namespace Spotitoast.Spotify.Client.Auth
         private readonly SpotifyAuthConfiguration _config;
         private readonly TokenSwapAuth _tokenSwapAuth;
         private readonly Timer _refreshTimer = new Timer();
+        private bool _gettingToken = false;
 
         /// <summary>
         /// Currently used token
@@ -60,6 +61,7 @@ namespace Spotitoast.Spotify.Client.Auth
 
                 TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
                 _tokenSwapAuth.Stop();
+                _gettingToken = false;
 
                 var timeToRefresh = _config.LastToken?.ExpiresIn ?? 3600;
 
@@ -120,8 +122,15 @@ namespace Spotitoast.Spotify.Client.Auth
 
         private void RequestNewToken()
         {
-            _tokenSwapAuth.Start();
-            _tokenSwapAuth.OpenBrowser();
+            lock (this)
+            {
+                if (_gettingToken) return;
+
+                _gettingToken = true;
+
+                _tokenSwapAuth.Start();
+                _tokenSwapAuth.OpenBrowser();
+            }
         }
     }
 }
