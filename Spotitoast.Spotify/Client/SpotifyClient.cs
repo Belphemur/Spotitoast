@@ -140,6 +140,16 @@ namespace Spotitoast.Spotify.Client
         }
 
         /// <summary>
+        /// Check if the given track is loved
+        /// </summary>
+        /// <param name="trackId"></param>
+        /// <returns></returns>
+        public async Task<bool> IsLoved(string trackId)
+        {
+            return (await CheckLoveState(trackId)) == ActionResult.AlreadyLoved;
+        }
+
+        /// <summary>
         /// Check if the track is loved or not
         /// </summary>
         /// <param name="trackId"></param>

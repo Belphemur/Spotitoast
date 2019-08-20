@@ -8,5 +8,6 @@ namespace Spotitoast.Logic.Model.Song
         string ArtistsDisplay { get; }
         string Name { get; }
         IAlbum Album { get; }
+        bool IsLoved { get; }
     }
 }

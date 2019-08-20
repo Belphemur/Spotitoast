@@ -56,7 +56,7 @@ namespace Spotitoast.Context
             {
                 var bannerData = new BannerData()
                 {
-                    Title = track.Name,
+                    Title = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
                     Text = track.Album.Name,
                     SubText = track.ArtistsDisplay,
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))

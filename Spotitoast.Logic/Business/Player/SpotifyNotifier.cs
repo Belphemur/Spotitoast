@@ -14,9 +14,9 @@ namespace Spotitoast.Logic.Business.Player
 
         public SpotifyNotifier(SpotifyClient client)
         {
-            TrackPlayed = client.PlayedTrack.Select(track => new TrackAdapter(track)).AsObservable();
-            TrackLiked = client.TrackLiked.Select(track => new TrackAdapter(track)).AsObservable();
-            TrackDisliked = client.TrackDisliked.Select(track => new TrackAdapter(track)).AsObservable();
+            TrackPlayed = client.PlayedTrack.Select(track => new TrackAdapter(track, client.IsLoved(track.Id).Result)).AsObservable();
+            TrackLiked = client.TrackLiked.Select(track => new TrackAdapter(track, true)).AsObservable();
+            TrackDisliked = client.TrackDisliked.Select(track => new TrackAdapter(track, false)).AsObservable();
         }
     }
 }
