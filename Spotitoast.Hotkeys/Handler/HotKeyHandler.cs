@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Spotitoast.HotKeys.Handler
@@ -209,7 +210,8 @@ namespace Spotitoast.HotKeys.Handler
             var key = (Model.HotKeys.Keys)((ConvertLParam(m.LParam) >> 16) & 0xFFFF);
             var modifier = (Model.HotKeys.ModifierKeys)(ConvertLParam(m.LParam) & 0xFFFF);
 
-            _hotkeyPressedSubject.OnNext(new Model.HotKeys(key, modifier));
+            Task.Run(() => { _hotkeyPressedSubject.OnNext(new Model.HotKeys(key, modifier)); });
+
 
         }
 
