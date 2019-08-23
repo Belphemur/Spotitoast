@@ -20,7 +20,8 @@ namespace Spotitoast.Logic.Model.Song.Adapter
         public AlbumAdapter(SimpleAlbum album)
         {
             Name = album.Name;
-            ReleaseDate = DateTime.Parse(album.ReleaseDate);
+            ReleaseDate = album.ReleaseDatePrecision == "year" ? new DateTime(int.Parse(album.ReleaseDate), 1, 1) : DateTime.Parse(album.ReleaseDate);
+
             _albumArt = new Uri(album.Images.First().Url);
         }
 
