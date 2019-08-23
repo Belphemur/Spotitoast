@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Spotitoast.Logic.Model.Song;
 
 namespace Spotitoast.Logic.Business.Player
@@ -8,7 +9,7 @@ namespace Spotitoast.Logic.Business.Player
         /// <summary>
         /// When a new track is played
         /// </summary>
-        IObservable<ITrack> TrackPlayed { get; }
+        IObservable<Task<ITrack>> TrackPlayed { get; }
         /// <summary>
         /// When a track is successfully liked
         /// </summary>

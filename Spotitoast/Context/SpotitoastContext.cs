@@ -52,8 +52,9 @@ namespace Spotitoast.Context
 
         private static void RegisterBanner(ISpotifyNotifier spotifyClient)
         {
-            spotifyClient.TrackPlayed.Subscribe(async track =>
+            spotifyClient.TrackPlayed.Subscribe(async trackTask =>
             {
+                var track = await trackTask;
                 var bannerData = new BannerData()
                 {
                     Title = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
