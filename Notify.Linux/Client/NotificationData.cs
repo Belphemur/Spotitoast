@@ -46,7 +46,7 @@ namespace Notify.Linux.Client
         ///
         /// -1 for staying until manually closed
         /// </summary>
-        public int Expiration { get; set; } = 1;
+        public int Expiration { get; set; } = -1;
 
         /// <summary>
         /// Used when you want to replace the same notification
