@@ -50,7 +50,7 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Body =  "Spotitoast disliked💖 🖤",
+                    Body =  "Spotitoast disliked💖 💔",
                     Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
                     Expiration = 1,
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
@@ -89,7 +89,7 @@ namespace Spotitoast.Linux.Notification
                         new NotificationData.Action
                         {
                             Key = ActionFactory.PlayerAction.Dislike.ToString(),
-                            Label = "  🖤Dislike",
+                            Label = "💔 Dislike",
                             OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Dislike)
                         },
                     };
