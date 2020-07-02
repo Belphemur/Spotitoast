@@ -44,7 +44,8 @@ namespace Notify.Linux.Client
         /// <summary>
         /// How long the notification stays up
         ///
-        /// -1 for staying until manually closed
+        /// 0 for needing manual stopping
+        /// -1 to respect system settings
         /// </summary>
         public int Expiration { get; set; } = -1;
 
