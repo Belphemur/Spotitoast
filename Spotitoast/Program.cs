@@ -27,6 +27,8 @@ namespace Spotitoast
                     (context.Kernel.Get<ConfigurationManager>()).LoadConfiguration<HotkeysConfiguration>().Result)
                 .InSingletonScope();
 
+            Bootstrap.Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
+
             HotKeyHandler.Start();
 
             Application.EnableVisualStyles();
