@@ -49,7 +49,7 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Body =  "You disliked💖 💔",
+                    Body =  "You disliked 💔",
                     Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
