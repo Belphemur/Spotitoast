@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Notify.Linux\Notify.Linux.csproj" />
+      <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
+      <ProjectReference Include="..\Spotitoast.Logic\Spotitoast.Logic.csproj" />
+      <ProjectReference Include="..\Spotitoast.Spotify\Spotitoast.Spotify.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\spotify.ico" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="GtkSharp" Version="3.22.25.98" />
+        <PackageReference Include="Tmds.DBus" Version="0.8.0" />
+    </ItemGroup>
+
+</Project>
