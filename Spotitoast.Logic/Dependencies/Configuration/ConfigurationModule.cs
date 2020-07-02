@@ -14,8 +14,8 @@ namespace Spotitoast.Logic.Dependencies.Configuration
             var configManager = new ConfigurationManager(Path.Combine(folderPath, "Spotitoast"));
 
             Bind<ConfigurationManager>().ToConstant(configManager);
-            Bind<SpotifyAuthConfiguration>().ToMethod(context => configManager.LoadConfiguration<SpotifyAuthConfiguration>().Result).InSingletonScope();
-            Bind<SpotifyWebClientConfiguration>().ToMethod(context => configManager.LoadConfiguration<SpotifyWebClientConfiguration>().Result).InSingletonScope();
+            Bind<SpotifyAuthConfiguration>().ToMethod(context => configManager.LoadConfiguration<SpotifyAuthConfiguration>().GetAwaiter().GetResult()).InSingletonScope();
+            Bind<SpotifyWebClientConfiguration>().ToMethod(context => configManager.LoadConfiguration<SpotifyWebClientConfiguration>().GetAwaiter().GetResult()).InSingletonScope();
         }
     }
 }
