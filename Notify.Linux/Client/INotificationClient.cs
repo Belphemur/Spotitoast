@@ -7,11 +7,11 @@ namespace Notify.Linux.Client
         /// <summary>
         /// Notify 
         /// </summary>
-        Task Notify(string text);
+        Task NotifyAsync(string text);
 
         /// <summary>
         /// Notify 
         /// </summary>
-        Task Notify(NotificationData notification);
+        Task NotifyAsync(NotificationData notification);
     }
 }

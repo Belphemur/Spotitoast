@@ -21,7 +21,7 @@ namespace Notify.Linux.Client
         /// <summary>
         /// Notify 
         /// </summary>
-        public Task Notify(string text)
+        public Task NotifyAsync(string text)
         {
             return _notificationsClient.NotifyAsync("Spotitoast", _lastId++, String.Empty, text, String.Empty, new string[0], new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()), 0);
         }
@@ -29,7 +29,7 @@ namespace Notify.Linux.Client
         /// <summary>
         /// Notify 
         /// </summary>
-        public Task Notify(NotificationData notification)
+        public Task NotifyAsync(NotificationData notification)
         {
             var hints = new Dictionary<string,object>();
             if (notification.Image != null)
