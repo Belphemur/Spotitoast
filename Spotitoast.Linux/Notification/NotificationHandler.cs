@@ -34,9 +34,10 @@ namespace Spotitoast.Linux.Context
                 await _notificationClient.NotifyAsync(new NotificationData
                 {
                     ApplicationName = "Spotitoast",
-                    Summary =  "Spotitoast liked💖",
-                    Body =  $@"{track.Name} - {track.ArtistsDisplay}",
-                    Expiration = 1
+                    Body =  "Spotitoast liked 💖",
+                    Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
+                    Expiration = 1,
+                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
 
             });
@@ -47,9 +48,10 @@ namespace Spotitoast.Linux.Context
                 await _notificationClient.NotifyAsync(new NotificationData
                 {
                     ApplicationName = "Spotitoast",
-                    Summary =  "Spotitoast disliked💖",
-                    Body =  $@"{track.Name} - {track.ArtistsDisplay}",
-                    Expiration = 1
+                    Body =  "Spotitoast disliked💖 🖤",
+                    Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
+                    Expiration = 1,
+                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
             });
         }
