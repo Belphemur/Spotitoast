@@ -37,9 +37,8 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Body =  "Spotitoast liked 💖",
+                    Body =  "You liked 💖",
                     Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
-                    Expiration = 1,
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
 
@@ -50,9 +49,8 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Body =  "Spotitoast disliked💖 💔",
+                    Body =  "You disliked💖 💔",
                     Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
-                    Expiration = 1,
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
             });
@@ -67,7 +65,7 @@ namespace Spotitoast.Linux.Notification
                 {
                     Summary =  $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
                     Body = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})\n{track.ArtistsDisplay}",
-                    Expiration = 1,
+                    Expiration = 2,
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 };
                 if (!track.IsLoved)
