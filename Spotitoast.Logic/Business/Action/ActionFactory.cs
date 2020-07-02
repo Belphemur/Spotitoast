@@ -1,10 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using Ninject;
-using Ninject.Syntax;
-using Spotitoast.Logic.Dependencies;
-using Spotitoast.Logic.Framework;
+﻿using Ninject.Syntax;
 using Spotitoast.Logic.Framework.Factory;
 
 namespace Spotitoast.Logic.Business.Action
@@ -16,7 +10,8 @@ namespace Spotitoast.Logic.Business.Action
             Like,
             Dislike,
             TogglePlayback,
-            CurrentlyPlaying
+            CurrentlyPlaying,
+            Exit
         }
 
         public ActionFactory(IResolutionRoot resolutionRoot) : base(resolutionRoot)
