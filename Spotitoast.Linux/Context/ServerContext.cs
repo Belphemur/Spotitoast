@@ -5,6 +5,7 @@ using Notify.Linux.Client;
 using SoundSwitch.InterProcess.Communication.Protocol;
 using Spotitoast.Linux.Command;
 using Spotitoast.Linux.Notification;
+using Spotitoast.Logic.Business.Action;
 using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Linux.Context
@@ -33,44 +34,54 @@ namespace Spotitoast.Linux.Context
                 await namedPipeServer.WaitForConnectionAsync();
                 var stringProtocol = new StreamString(namedPipeServer);
                 var cmd = stringProtocol.ReadString();
-                var action = _commandExecutor.ParseCommand(cmd);
-                if (action == null)
+                await HandleCommand(cmd);
+            }
+        }
+
+        private async Task HandleCommand(string cmd)
+        {
+            var action = _commandExecutor.ParseCommand(cmd);
+            if (action == null)
+            {
+                await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
+                    Body = $"Command: {cmd}\nAvailable: {string.Join(", ", _commandExecutor.AvailableCommands)}",
+                    Summary = "Spotitoast Unknown command"
+                });
+                return;
+            }
+
+            await ExecuteCommand(action);
+        }
+
+        private async Task ExecuteCommand(ActionFactory.PlayerAction? action)
+        {
+            var result = await _commandExecutor.Execute(action.Value);
+            switch (result)
+            {
+                case ActionResult.Success:
+                    break;
+                case ActionResult.NoTrackPlayed:
                     await _notificationClient.NotifyAsync(new SpotitoastNotification
                     {
-                        Body = $"Command: {cmd}\nAvailable: {string.Join(", ", _commandExecutor.AvailableCommands)}",
-                        Summary = "Spotitoast Unknown command"
+                        Body = $"No track playing",
+                        Summary = "Spotitoast"
                     });
-                    continue;
-                }
-
-                var result = await _commandExecutor.Execute(action.Value);
-                switch (result)
-                {
-                    case ActionResult.Success:
-                        break;
-                    case ActionResult.NoTrackPlayed:
-                        await _notificationClient.NotifyAsync(new SpotitoastNotification
-                        {
-                            Body = $"No track playing",
-                            Summary = "Spotitoast"
-                        });
-                        break;
-                    case ActionResult.AlreadyLiked:
-                        await _notificationClient.NotifyAsync(new SpotitoastNotification
-                        {
-                            Body = $"Track already liked",
-                            Summary = "Spotitoast"
-                        });
-                        break;
-                    case ActionResult.NotLiked:
-                        break;
-                    case ActionResult.Error:
-                        await Console.Out.WriteLineAsync($"Couldn't execute action {action}");
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                    break;
+                case ActionResult.AlreadyLiked:
+                    await _notificationClient.NotifyAsync(new SpotitoastNotification
+                    {
+                        Body = $"Track already liked",
+                        Summary = "Spotitoast"
+                    });
+                    break;
+                case ActionResult.NotLiked:
+                    break;
+                case ActionResult.Error:
+                    await Console.Out.WriteLineAsync($"Couldn't execute action {action}");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }
