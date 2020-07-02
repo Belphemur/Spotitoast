@@ -1,6 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Notify.Linux.DBus;
 using Notify.Linux.Extensions;
@@ -11,25 +10,40 @@ namespace Notify.Linux.Client
     public class NotificationClient : INotificationClient
     {
         private readonly INotifications _notificationsClient;
-        private uint _lastId = 0;
+        private readonly Dictionary<uint, Dictionary<string, NotificationData.Action>> _notificationActions = new Dictionary<uint, Dictionary<string, NotificationData.Action>>();
 
         public NotificationClient(Connection connection)
         {
             _notificationsClient = connection.CreateProxy<INotifications>("org.freedesktop.Notifications", "/org/freedesktop/Notifications");
+            _notificationsClient.WatchNotificationClosedAsync(NotificationClosed).GetAwaiter().GetResult();
+            _notificationsClient.WatchActionInvokedAsync(NotificationActionExecuted).GetAwaiter().GetResult();
         }
 
-        /// <summary>
-        /// Notify 
-        /// </summary>
-        public Task NotifyAsync(string text)
+        private void NotificationActionExecuted((uint id, string actionKey) obj)
         {
-            return _notificationsClient.NotifyAsync("Spotitoast", _lastId++, String.Empty, text, String.Empty, new string[0], new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()), 0);
+            if (!_notificationActions.ContainsKey(obj.id))
+            {
+                return;
+            }
+
+            if (!_notificationActions[obj.id].TryGetValue(obj.actionKey, out var action))
+            {
+                return;
+            }
+
+            Task.Factory.StartNew(async o => await action.OnActionCalled.Invoke(), null);
+        }
+
+        private void NotificationClosed((uint id, uint reason) obj)
+        {
+            _notificationActions.Remove(obj.id);
         }
 
         /// <summary>
-        /// Notify 
+        /// Notify
+        /// <returns>ID of the sent notification</returns>
         /// </summary>
-        public Task NotifyAsync(NotificationData notification)
+        public async Task<uint> NotifyAsync(NotificationData notification)
         {
             var hints = new Dictionary<string, object>();
             if (notification.Image != null)
@@ -37,17 +51,18 @@ namespace Notify.Linux.Client
                 hints.Add("image-data", notification.Image.ToPixbuf().ToIconData());
             }
 
-            var notifId = notification.NotificationId;
-            if (notification.NotificationId == 0)
-            {
-                notifId = _lastId++;
-            }
-            else if (notifId > _lastId)
-            {
-                _lastId = notifId;
-            }
+            var actions = notification.Actions.Select(action => new[] {action.Key, action.Label}).SelectMany(strings => strings).ToArray();
 
-            return _notificationsClient.NotifyAsync(notification.ApplicationName, notifId, notification.ApplicationIconPath, notification.Summary, notification.Body, new string[0], hints, notification.Expiration);
+            var notifId = await _notificationsClient.NotifyAsync(notification.ApplicationName, notification.NotificationId, notification.ApplicationIconPath, notification.Summary, notification.Body, actions, hints, notification.Expiration);
+
+            if (notification.Actions.Length == 0)
+            {
+                return notifId;
+            }
+            
+            _notificationActions.Add(notifId, notification.Actions.ToDictionary(action => action.Key));
+            
+            return notifId;
         }
     }
 }
