@@ -4,8 +4,8 @@
     {
         Success = 1,
         NoTrackPlayed,
-        AlreadyLoved,
-        NotLoved,
+        AlreadyLiked,
+        NotLiked,
         Error
     }
 }

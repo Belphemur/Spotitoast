@@ -25,13 +25,13 @@ namespace Notify.Linux.Client
         {
             return _notificationsClient.NotifyAsync("Spotitoast", _lastId++, String.Empty, text, String.Empty, new string[0], new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()), 0);
         }
-        
+
         /// <summary>
         /// Notify 
         /// </summary>
         public Task NotifyAsync(NotificationData notification)
         {
-            var hints = new Dictionary<string,object>();
+            var hints = new Dictionary<string, object>();
             if (notification.Image != null)
             {
                 hints.Add("image-data", notification.Image.ToPixbuf().ToIconData());
@@ -42,7 +42,12 @@ namespace Notify.Linux.Client
             {
                 notifId = _lastId++;
             }
-            return _notificationsClient.NotifyAsync( notification.ApplicationName, notifId, notification.ApplicationIconPath, notification.Summary, notification.Body, new string[0], hints, notification.Expiration);
+            else if (notifId > _lastId)
+            {
+                _lastId = notifId;
+            }
+
+            return _notificationsClient.NotifyAsync(notification.ApplicationName, notifId, notification.ApplicationIconPath, notification.Summary, notification.Body, new string[0], hints, notification.Expiration);
         }
     }
 }

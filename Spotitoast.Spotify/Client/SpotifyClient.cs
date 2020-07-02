@@ -8,11 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Models;
-using Spotitoast.Configuration;
 using Spotitoast.Spotify.Client.Auth;
 using Spotitoast.Spotify.Configuration;
 using Spotitoast.Spotify.Model;
-using Unosquare.Swan.Components;
 
 namespace Spotitoast.Spotify.Client
 {
@@ -122,7 +120,7 @@ namespace Spotitoast.Spotify.Client
 
             Trace.WriteLine($"Loving ${trackId}.");
             var loveState = await CheckLoveState(trackId);
-            if (loveState != ActionResult.NotLoved)
+            if (loveState != ActionResult.NotLiked)
             {
                 return loveState;
             }
@@ -146,7 +144,7 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<bool> IsLoved(string trackId)
         {
-            return (await CheckLoveState(trackId)) == ActionResult.AlreadyLoved;
+            return (await CheckLoveState(trackId)) == ActionResult.AlreadyLiked;
         }
 
         /// <summary>
@@ -167,7 +165,7 @@ namespace Spotitoast.Spotify.Client
                 return ActionResult.Error;
             }
 
-            return isLovedResult.List.First() ? ActionResult.AlreadyLoved : ActionResult.NotLoved;
+            return isLovedResult.List.First() ? ActionResult.AlreadyLiked : ActionResult.NotLiked;
         }
 
         /// <summary>
@@ -190,7 +188,7 @@ namespace Spotitoast.Spotify.Client
             _trackDisliked.OnNext(track);
 
             var loveState = await CheckLoveState(trackId);
-            if (loveState != ActionResult.AlreadyLoved)
+            if (loveState != ActionResult.AlreadyLiked)
             {
                 return loveState;
             }
