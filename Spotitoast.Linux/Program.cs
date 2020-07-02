@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Ninject;
-using SoundSwitch.InterProcess.Communication;
 using Spotitoast.Linux.Context;
 
 namespace Spotitoast.Linux
@@ -14,21 +13,15 @@ namespace Spotitoast.Linux
             Logic.Dependencies.Bootstrap.Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
             var pipeName = $"Spotitoast-{Environment.UserName}";
             using var mutex = new Mutex(true, @$"Global\{pipeName}", out var createdNew);
-
+            //When creating the mutex, we run a server
             if (createdNew)
             {
+                await Console.Out.WriteLineAsync("Running as server.");
                 await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStart(pipeName);
+                return;
             }
 
-            if (args.Length > 0)
-            {
-                using var client = new NamedPipeClient(pipeName);
-                client.SendMsg(args[0]);
-                Environment.Exit(0);
-            }
-
-            await Console.Error.WriteLineAsync("Server loaded and no command given.");
-            Environment.Exit(1);
+            await Logic.Dependencies.Bootstrap.Kernel.Get<ClientContext>().SendCommand(pipeName, args);
         }
     }
 }
