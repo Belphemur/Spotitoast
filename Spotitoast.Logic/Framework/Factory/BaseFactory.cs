@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Ninject;
 using Ninject.Syntax;
 
 namespace Spotitoast.Logic.Framework.Factory
 {
-    public class BaseFactory<TKey, TImpl> : IFactory<TKey, TImpl> where TImpl: IEnumImplementation<TKey>
+    public class BaseFactory<TKey, TImpl> : IFactory<TKey, TImpl> where TImpl : IEnumImplementation<TKey>
     {
-
         private readonly IDictionary<TKey, TImpl> _values;
 
         public BaseFactory(IResolutionRoot resolutionRoot)
@@ -15,6 +15,10 @@ namespace Spotitoast.Logic.Framework.Factory
             _values = resolutionRoot.GetAll<TImpl>().ToDictionary(action => action.Enum, action => action);
         }
 
+        /// <summary>
+        /// All the available keys for the factory
+        /// </summary>
+        public TKey[] AvailableKeys { get; } = (TKey[]) Enum.GetValues(typeof(TKey));
 
         /// <summary>
         /// Get the action for the enum
@@ -33,7 +37,7 @@ namespace Spotitoast.Logic.Framework.Factory
         /// <returns></returns>
         public IReadOnlyCollection<TImpl> Values()
         {
-            return (IReadOnlyCollection<TImpl>)_values.Values;
+            return (IReadOnlyCollection<TImpl>) _values.Values;
         }
     }
 }

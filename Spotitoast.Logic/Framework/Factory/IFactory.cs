@@ -2,8 +2,14 @@
 
 namespace Spotitoast.Logic.Framework.Factory
 {
-    public interface IFactory<in TKey, out TImpl> where TImpl : IEnumImplementation<TKey>
+    public interface IFactory<TKey, out TImpl> where TImpl : IEnumImplementation<TKey>
     {
+        
+        /// <summary>
+        /// All the available keys for the factory
+        /// </summary>
+        public TKey[] AvailableKeys { get; }
+        
         /// <summary>
         /// Get the Implementation from the key
         /// </summary>
