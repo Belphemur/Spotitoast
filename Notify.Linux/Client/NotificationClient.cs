@@ -51,17 +51,19 @@ namespace Notify.Linux.Client
                 hints.Add("image-data", notification.Image.ToPixbuf().ToIconData());
             }
 
-            var actions = notification.Actions.Select(action => new[] {action.Key, action.Label}).SelectMany(strings => strings).ToArray();
+            var actions = notification.Actions != null && notification.Actions.Length > 0
+                ? notification.Actions.Select(action => new[] {action.Key, action.Label}).SelectMany(strings => strings).ToArray()
+                : new string[0];
 
             var notifId = await _notificationsClient.NotifyAsync(notification.ApplicationName, notification.NotificationId, notification.ApplicationIconPath, notification.Summary, notification.Body, actions, hints, notification.Expiration);
 
-            if (notification.Actions.Length == 0)
+            if (notification.Actions == null || notification.Actions?.Length == 0)
             {
                 return notifId;
             }
-            
-            _notificationActions.Add(notifId, notification.Actions.ToDictionary(action => action.Key));
-            
+
+            _notificationActions.Add(notifId, notification.Actions!.ToDictionary(action => action.Key));
+
             return notifId;
         }
     }
