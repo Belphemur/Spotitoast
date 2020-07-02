@@ -23,6 +23,12 @@ namespace SoundSwitch.InterProcess.Communication
             ss.WriteString(msg);
         }
 
+        public string ReadMsg()
+        {
+            var ss = new StreamString(_clientStream);
+            return ss.ReadString();
+        }
+
         public void Dispose()
         {
             _clientStream?.Dispose();

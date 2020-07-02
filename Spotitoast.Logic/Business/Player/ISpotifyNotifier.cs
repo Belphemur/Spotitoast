@@ -13,10 +13,10 @@ namespace Spotitoast.Logic.Business.Player
         /// <summary>
         /// When a track is successfully liked
         /// </summary>
-        IObservable<ITrack> TrackLiked { get; }
+        IObservable<Task<ITrack>> TrackLiked { get; }
         /// <summary>
         /// When a track is successfully disliked
         /// </summary>
-        IObservable<ITrack> TrackDisliked { get; }
+        IObservable<Task<ITrack>> TrackDisliked { get; }
     }
 }
