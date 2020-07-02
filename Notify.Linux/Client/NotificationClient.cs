@@ -36,7 +36,13 @@ namespace Notify.Linux.Client
             {
                 hints.Add("image-data", notification.Image.ToPixbuf().ToIconData());
             }
-            return _notificationsClient.NotifyAsync( notification.ApplicationName, _lastId++, String.Empty, notification.Summary, notification.Body, new string[0], hints, notification.Expiration);
+
+            var notifId = notification.NotificationId;
+            if (notification.NotificationId == 0)
+            {
+                notifId = _lastId++;
+            }
+            return _notificationsClient.NotifyAsync( notification.ApplicationName, notifId, notification.ApplicationIconPath, notification.Summary, notification.Body, new string[0], hints, notification.Expiration);
         }
     }
 }

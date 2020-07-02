@@ -10,6 +10,11 @@ namespace Notify.Linux.Client
         /// Name of the application the notification belongs to
         /// </summary>
         public string ApplicationName { get; set; } = String.Empty;
+        
+        /// <summary>
+        /// Path to the icon of the application
+        /// </summary>
+        public string ApplicationIconPath { get; set; } = String.Empty;
         /// <summary>
         /// Title of the notification
         /// </summary>
@@ -28,6 +33,11 @@ namespace Notify.Linux.Client
         /// -1 for staying until manually closed
         /// </summary>
         public int Expiration { get; set; } = 1;
-        
+
+        /// <summary>
+        /// Used when you want to replace the same notification
+        /// </summary>
+        public uint NotificationId = 0;
+
     }
 }
