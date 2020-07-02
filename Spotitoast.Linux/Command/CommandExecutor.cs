@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Spotify.Model;
@@ -13,6 +14,11 @@ namespace Spotitoast.Linux.Command
         {
             _actionFactory = actionFactory;
         }
+        
+        /// <summary>
+        /// What are the available commands
+        /// </summary>
+        public ActionFactory.PlayerAction[] AvailableCommands => _actionFactory.Values().Select(action => action.Enum).ToArray();
 
         /// <summary>
         /// Parse the command

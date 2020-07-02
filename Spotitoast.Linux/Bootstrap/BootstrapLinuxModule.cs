@@ -1,7 +1,7 @@
 using Ninject.Modules;
 using Notify.Linux.Client;
 using Spotitoast.Linux.Command;
-using Spotitoast.Linux.Context;
+using Spotitoast.Linux.Notification;
 using Tmds.DBus;
 
 namespace Spotitoast.Linux.Bootstrap

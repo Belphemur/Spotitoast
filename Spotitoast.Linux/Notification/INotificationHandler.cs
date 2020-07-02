@@ -1,4 +1,4 @@
-namespace Spotitoast.Linux.Context
+namespace Spotitoast.Linux.Notification
 {
     public interface INotificationHandler
     {

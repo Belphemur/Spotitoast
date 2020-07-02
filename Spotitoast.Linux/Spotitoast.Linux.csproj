@@ -6,20 +6,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Notify.Linux\Notify.Linux.csproj" />
-      <ProjectReference Include="..\SoundSwitch.InterProcess.Communication\SoundSwitch.InterProcess.Communication.csproj" />
-      <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
-      <ProjectReference Include="..\Spotitoast.Logic\Spotitoast.Logic.csproj" />
-      <ProjectReference Include="..\Spotitoast.Spotify\Spotitoast.Spotify.csproj" />
+        <ProjectReference Include="..\Notify.Linux\Notify.Linux.csproj"/>
+        <ProjectReference Include="..\SoundSwitch.InterProcess.Communication\SoundSwitch.InterProcess.Communication.csproj"/>
+        <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj"/>
+        <ProjectReference Include="..\Spotitoast.Logic\Spotitoast.Logic.csproj"/>
+        <ProjectReference Include="..\Spotitoast.Spotify\Spotitoast.Spotify.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="Resources\spotify.ico" />
+        <None Include="Resources\spotitoast.ico">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="GtkSharp" Version="3.22.25.98" />
-        <PackageReference Include="Tmds.DBus" Version="0.8.0" />
-    </ItemGroup>
-
+    <PropertyGroup>
+        <ApplicationIcon>Resources\spotitoast.ico</ApplicationIcon>
+    </PropertyGroup>
 </Project>

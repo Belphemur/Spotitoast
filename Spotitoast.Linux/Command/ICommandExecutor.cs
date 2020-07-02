@@ -15,5 +15,10 @@ namespace Spotitoast.Linux.Command
         /// Execute the command
         /// </summary>
         Task<ActionResult> Execute(ActionFactory.PlayerAction action);
+
+        /// <summary>
+        /// What are the available commands
+        /// </summary>
+        ActionFactory.PlayerAction[] AvailableCommands { get; }
     }
 }

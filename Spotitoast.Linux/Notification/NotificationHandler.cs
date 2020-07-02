@@ -4,7 +4,7 @@ using Notify.Linux.Client;
 using Spotitoast.Logic.Business.Player;
 using Spotitoast.Logic.Framework.Extensions;
 
-namespace Spotitoast.Linux.Context
+namespace Spotitoast.Linux.Notification
 {
     public class NotificationHandler : INotificationHandler
     {
@@ -31,9 +31,8 @@ namespace Spotitoast.Linux.Context
             _spotifyClient.TrackLiked.Subscribe(async trackTask =>
             {
                 var track = await trackTask;
-                await _notificationClient.NotifyAsync(new NotificationData
+                await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    ApplicationName = "Spotitoast",
                     Body =  "Spotitoast liked 💖",
                     Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
                     Expiration = 1,
@@ -45,9 +44,8 @@ namespace Spotitoast.Linux.Context
             _spotifyClient.TrackDisliked.Subscribe(async trackTask =>
             {
                 var track = await trackTask;
-                await _notificationClient.NotifyAsync(new NotificationData
+                await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    ApplicationName = "Spotitoast",
                     Body =  "Spotitoast disliked💖 🖤",
                     Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
                     Expiration = 1,
@@ -61,9 +59,8 @@ namespace Spotitoast.Linux.Context
             _spotifyClient.TrackPlayed.Subscribe(async trackTask =>
             {
                 var track = await trackTask;
-                var notificationData = new NotificationData
+                var notificationData = new SpotitoastNotification
                 {
-                    ApplicationName = "Spotitoast",
                     Summary =  $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
                     Body = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})\n{track.ArtistsDisplay}",
                     Expiration = 1,
