@@ -22,6 +22,6 @@
         </None>
     </ItemGroup>
     <PropertyGroup>
-        <ApplicationIcon>Resources\spotitoast.ico</ApplicationIcon>
+        <ApplicationIcon>Resources\Spotitoast.ico</ApplicationIcon>
     </PropertyGroup>
 </Project>
