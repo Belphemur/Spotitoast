@@ -59,9 +59,9 @@ namespace Notify.Linux.Client
         /// How long the notification stays up
         ///
         /// 0 for needing manual stopping
-        /// -1 to respect system settings
+        /// null to respect system settings
         /// </summary>
-        public int Expiration { get; set; } = -1;
+        public TimeSpan? Expiration { get; set; }
 
         /// <summary>
         /// Used when you want to replace the same notification

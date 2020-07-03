@@ -55,7 +55,8 @@ namespace Notify.Linux.Client
                 ? notification.Actions.Select(action => new[] {action.Key, action.Label}).SelectMany(strings => strings).ToArray()
                 : new string[0];
 
-            var notifId = await _notificationsClient.NotifyAsync(notification.ApplicationName, notification.NotificationId, notification.ApplicationIconPath, notification.Summary, notification.Body, actions, hints, notification.Expiration);
+            var expiration = (int) (notification.Expiration?.TotalMilliseconds ?? -1);
+            var notifId = await _notificationsClient.NotifyAsync(notification.ApplicationName, notification.NotificationId, notification.ApplicationIconPath, notification.Summary, notification.Body, actions, hints, expiration);
 
             if (notification.Actions == null || notification.Actions?.Length == 0)
             {
