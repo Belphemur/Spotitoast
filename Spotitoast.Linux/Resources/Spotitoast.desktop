@@ -1,8 +1,9 @@
+#!/usr/bin/env xdg-open
 [Desktop Entry]
 Type=Application
 Encoding=UTF-8
 Name=Spotitoast
 Comment=Use command line to control Spotify with nice DBUS notification
-Exec=../Spotitoast.Linux
-Icon=spotitoast.ico
+Exec=/opt/spotitoast/Spotitoast.Linux
+Icon=/opt/spotitoast/Resources/spotitoast.ico
 Terminal=false
