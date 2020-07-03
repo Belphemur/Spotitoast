@@ -10,7 +10,7 @@ namespace Spotitoast.Linux.Notification
             ApplicationName = "Spotitoast";
             var resourceDirectory = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()!.Location)!, "Resources");
             ApplicationIconPath = Path.Combine(resourceDirectory, "spotitoast.ico");
-            Hints.Add("desktop-entry", Path.Combine(resourceDirectory, "Spotitoast.desktop"));
+            Hints.Add("desktop-entry", "spotitoast");
         }
     }
 }
