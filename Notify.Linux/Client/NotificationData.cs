@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -7,11 +8,24 @@ namespace Notify.Linux.Client
 {
     public class NotificationData
     {
+        /// <summary>
+        /// Action available on the notification
+        /// </summary>
         public struct Action
         {
+            /// <summary>
+            /// Unique Key for the action in a notification
+            /// </summary>
             public string Key { get; set; }
+
+            /// <summary>
+            /// Label seen by the user for this action
+            /// </summary>
             public string Label { get; set; }
 
+            /// <summary>
+            /// Function that will be called when the user click on the action
+            /// </summary>
             public Func<Task> OnActionCalled { get; set; }
         }
 
@@ -58,5 +72,10 @@ namespace Notify.Linux.Client
         /// Set of action and what to do when it's triggered
         /// </summary>
         public Action[] Actions { get; set; }
+
+        /// <summary>
+        /// Specific hints for this notification
+        /// </summary>
+        public Dictionary<string, object> Hints { get; } = new Dictionary<string, object>();
     }
 }

@@ -45,8 +45,8 @@ namespace Notify.Linux.Client
         /// </summary>
         public async Task<uint> NotifyAsync(NotificationData notification)
         {
-            var hints = new Dictionary<string, object>();
-            if (notification.Image != null)
+            var hints = notification.Hints;
+            if (notification.Image != null && !hints.ContainsKey("image-data"))
             {
                 hints.Add("image-data", notification.Image.ToPixbuf().ToIconData());
             }
