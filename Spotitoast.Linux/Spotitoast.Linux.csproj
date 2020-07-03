@@ -17,6 +17,9 @@
         <None Include="Resources\spotitoast.ico">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Resources\Spotitoast.desktop">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <PropertyGroup>
         <ApplicationIcon>Resources\spotitoast.ico</ApplicationIcon>
