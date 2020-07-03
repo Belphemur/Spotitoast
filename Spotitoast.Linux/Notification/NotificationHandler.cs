@@ -37,8 +37,8 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Body =  "You liked 💖",
-                    Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
+                    Summary =  "You liked 💖",
+                    Body =  $@"{track.Name} - {track.ArtistsDisplay}",
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
 
@@ -49,8 +49,8 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Body =  "You disliked 💔",
-                    Summary =  $@"{track.Name} - {track.ArtistsDisplay}",
+                    Summary =  "You disliked 💔",
+                    Body =  $@"{track.Name} - {track.ArtistsDisplay}",
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
             });
