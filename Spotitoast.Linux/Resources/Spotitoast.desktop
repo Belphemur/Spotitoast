@@ -6,3 +6,4 @@ Comment=Use command line to control Spotify with nice DBUS notification
 Exec=/opt/spotitoast/Spotitoast.Linux
 Icon=Spotitoast
 Terminal=false
+X-GNOME-Autostart-enabled=true
