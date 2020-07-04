@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Drawing;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Threading;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using Spotitoast.Banner.Client;
 using Spotitoast.Banner.Model;
@@ -12,7 +11,6 @@ using Spotitoast.HotKeys.Handler;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Logic.Business.Player;
 using Spotitoast.Logic.Framework.Extensions;
-using Spotitoast.Spotify.Client;
 
 namespace Spotitoast.Context
 {
@@ -23,7 +21,7 @@ namespace Spotitoast.Context
         private readonly HotkeysConfiguration _configuration;
 
         public SpotitoastContext(HotkeysConfiguration configuration, IActionFactory actionFactory,
-            ISpotifyNotifier spotifyClient)
+                                 ISpotifyNotifier     spotifyClient)
         {
             _trayIcon = BuildTrayIcon();
             InitBannerClient();
@@ -35,17 +33,19 @@ namespace Spotitoast.Context
 
         private void RegisterBalloonTip(ISpotifyNotifier spotifyClient)
         {
-            spotifyClient.TrackLiked.Subscribe(track =>
+            spotifyClient.TrackLiked.Subscribe(async trackTask =>
             {
+                var track = await trackTask;
                 _trayIcon.BalloonTipTitle = "Spotitoast liked 💖";
-                _trayIcon.BalloonTipText = $@"{track.Name} - {track.ArtistsDisplay}";
+                _trayIcon.BalloonTipText  = $@"{track.Name} - {track.ArtistsDisplay}";
                 _trayIcon.ShowBalloonTip(1000);
             });
 
-            spotifyClient.TrackDisliked.Subscribe(track =>
+            spotifyClient.TrackDisliked.Subscribe(async trackTask =>
             {
+                var track = await trackTask;
                 _trayIcon.BalloonTipTitle = "Spotitoast disliked 🖤";
-                _trayIcon.BalloonTipText = $@"{track.Name} - {track.ArtistsDisplay}";
+                _trayIcon.BalloonTipText  = $@"{track.Name} - {track.ArtistsDisplay}";
                 _trayIcon.ShowBalloonTip(1000);
             });
         }
@@ -57,10 +57,10 @@ namespace Spotitoast.Context
                 var track = await trackTask;
                 var bannerData = new BannerData()
                 {
-                    Title = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
-                    Text = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})",
+                    Title   = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
+                    Text    = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})",
                     SubText = track.ArtistsDisplay,
-                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
+                    Image   = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 };
 
                 BannerClient.ShowNotification(bannerData);
@@ -75,9 +75,9 @@ namespace Spotitoast.Context
             }
 
             HotKeyHandler.HotKeyPressed
-                .Select(keys => actionFactory.Get(_configuration.GetAction(keys)))
-                .Where(action => action != null)
-                .Subscribe(action => action.Execute());
+                         .Select(keys => actionFactory.Get(_configuration.GetAction(keys)))
+                         .Where(action => action != null)
+                         .Subscribe(action => action.Execute());
         }
 
         private void InitBannerClient()
@@ -92,16 +92,17 @@ namespace Spotitoast.Context
             using var manifestResourceStream =
                 Assembly.GetEntryAssembly()?.GetManifestResourceStream("Spotitoast.Resources.spotify.ico") ??
                 throw new InvalidOperationException();
-            var trayIcon = new NotifyIcon()
+            var trayIcon = new NotifyIcon
             {
                 Icon = new Icon(manifestResourceStream),
-                ContextMenu = new ContextMenu(new[]
+
+                ContextMenuStrip = new ContextMenuStrip
                 {
-                    new MenuItem("Exit", Exit)
-                }),
+                    Items = {{"Exit", null, Exit}}
+                },
                 BalloonTipTitle = "Spotitoast",
-                Text = "Spotitoast",
-                Visible = true
+                Text            = "Spotitoast",
+                Visible         = true
             };
             return trayIcon;
         }
