@@ -106,6 +106,7 @@ namespace Spotitoast.Spotify.Client
             {
                 return ActionResult.Error;
             }
+
             return ActionResult.Success;
         }
 
@@ -131,6 +132,7 @@ namespace Spotitoast.Spotify.Client
                 Trace.WriteLine(result.Error.Message);
                 return ActionResult.Error;
             }
+
             Trace.WriteLine($"Track ${trackId} loved.");
 
             _trackLiked.OnNext(track);
@@ -177,12 +179,11 @@ namespace Spotitoast.Spotify.Client
             var track = _playbackContext?.Item;
             var trackId = track?.Id;
             Trace.WriteLine($"Dislinking ${trackId}.");
-            var result = await _spotifyWebClient.SkipPlaybackToNextAsync();
-
-            if (result.HasError())
+            var resultSkip = await SkipTrack();
+            
+            if (resultSkip == ActionResult.Error)
             {
-                Trace.WriteLine(result.Error.Message);
-                return ActionResult.Error;
+                return resultSkip;
             }
 
             _trackDisliked.OnNext(track);
@@ -193,8 +194,25 @@ namespace Spotitoast.Spotify.Client
                 return loveState;
             }
 
-            result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
+            var result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
             return result.HasError() ? ActionResult.Error : ActionResult.Success;
+        }
+
+        /// <summary>
+        /// Skip the current track
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ActionResult> SkipTrack()
+        {
+            var result = await _spotifyWebClient.SkipPlaybackToNextAsync();
+            Trace.WriteLine("Skipping track");
+            if (result.HasError())
+            {
+                Trace.WriteLine(result.Error.Message);
+                return ActionResult.Error;
+            }
+
+            return ActionResult.Success;
         }
 
         /// <summary>
@@ -256,6 +274,7 @@ namespace Spotitoast.Spotify.Client
 
             return ActionResult.Success;
         }
+
         /// <summary>
         /// Force checking for the current playing track
         /// </summary>
