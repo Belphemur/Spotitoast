@@ -1,6 +1,7 @@
 ﻿using Ninject.Modules;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Logic.Business.Action.Implementation;
+using Spotitoast.Logic.Business.Command;
 
 namespace Spotitoast.Logic.Dependencies.Actions
 {
@@ -15,6 +16,7 @@ namespace Spotitoast.Logic.Dependencies.Actions
             Bind<IAction>().To<CurrentlyPlaying>();
             Bind<IAction>().To<Exit>();
             Bind<IAction>().To<SkipTrack>();
+            Bind<ICommandExecutor>().To<CommandExecutor>().InSingletonScope();
         }
     }
 }

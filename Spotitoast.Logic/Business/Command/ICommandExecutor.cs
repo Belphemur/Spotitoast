@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Linux.Command
+namespace Spotitoast.Logic.Business.Command
 {
     public interface ICommandExecutor
     {

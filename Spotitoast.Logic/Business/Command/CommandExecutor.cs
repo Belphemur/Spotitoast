@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Linux.Command
+namespace Spotitoast.Logic.Business.Command
 {
     public class CommandExecutor : ICommandExecutor
     {
@@ -24,12 +24,12 @@ namespace Spotitoast.Linux.Command
         /// </summary>
         public ActionFactory.PlayerAction? ParseCommand(string cmd)
         {
-            if (!Enum.TryParse(typeof(ActionFactory.PlayerAction), cmd, true, out var @enum))
+            if (!Enum.TryParse<ActionFactory.PlayerAction>(cmd, true, out var @enum))
             {
                 return null;
             }
 
-            return (ActionFactory.PlayerAction) @enum!;
+            return @enum!;
         }
 
         /// <summary>

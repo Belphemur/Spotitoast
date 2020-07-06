@@ -1,6 +1,5 @@
 using Ninject.Modules;
 using Notify.Linux.Client;
-using Spotitoast.Linux.Command;
 using Spotitoast.Linux.Notification;
 using Tmds.DBus;
 
@@ -12,7 +11,6 @@ namespace Spotitoast.Linux.Bootstrap
         {
             Bind<INotificationClient>().ToMethod(context => new NotificationClient(Connection.Session)).InSingletonScope();
             Bind<INotificationHandler>().To<NotificationHandler>().InSingletonScope();
-            Bind<ICommandExecutor>().To<CommandExecutor>().InSingletonScope();
         }
     }
 }

@@ -3,9 +3,9 @@ using System.IO.Pipes;
 using System.Threading.Tasks;
 using Notify.Linux.Client;
 using SoundSwitch.InterProcess.Communication.Protocol;
-using Spotitoast.Linux.Command;
 using Spotitoast.Linux.Notification;
 using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Command;
 using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Linux.Context

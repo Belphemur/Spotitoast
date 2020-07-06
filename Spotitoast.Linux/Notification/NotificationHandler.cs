@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using Notify.Linux.Client;
-using Spotitoast.Linux.Command;
 using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Command;
 using Spotitoast.Logic.Business.Player;
 using Spotitoast.Logic.Framework.Extensions;
 using Spotitoast.Logic.Model.Song;
