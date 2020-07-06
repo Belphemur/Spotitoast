@@ -4,9 +4,9 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action.Implementation
 {
-    public class DislikeAction : BaseAction
+    public class Dislike : BaseAction
     {
-        public DislikeAction(SpotifyClient client) : base(client)
+        public Dislike(SpotifyClient client) : base(client)
         {
         }
 
