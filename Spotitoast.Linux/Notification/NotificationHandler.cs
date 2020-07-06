@@ -5,6 +5,7 @@ using Spotitoast.Linux.Command;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Logic.Business.Player;
 using Spotitoast.Logic.Framework.Extensions;
+using Spotitoast.Logic.Model.Song;
 
 namespace Spotitoast.Linux.Notification
 {
@@ -37,20 +38,19 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Summary =  "You liked 💖",
-                    Body =  $@"{track.Name} - {track.ArtistsDisplay}",
+                    Summary = "You liked 💖",
+                    Body = $@"{track.Name} - {track.ArtistsDisplay}",
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
-
             });
-            
+
             _spotifyNotifier.TrackDisliked.Subscribe(async trackTask =>
             {
                 var track = await trackTask;
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Summary =  "You disliked 💔",
-                    Body =  $@"{track.Name} - {track.ArtistsDisplay}",
+                    Summary = "You disliked 💔",
+                    Body = $@"{track.Name} - {track.ArtistsDisplay}",
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 });
             });
@@ -63,38 +63,48 @@ namespace Spotitoast.Linux.Notification
                 var track = await trackTask;
                 var notificationData = new SpotitoastNotification
                 {
-                    Summary =  $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
+                    Summary = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
                     Body = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})\n{track.ArtistsDisplay}",
                     Expiration = TimeSpan.FromSeconds(2),
                     Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
                 };
-                if (!track.IsLoved)
-                {
-                    notificationData.Actions = new[]
-                    {
-                        new NotificationData.Action
-                        {
-                            Key = ActionFactory.PlayerAction.Like.ToString(),
-                            Label = " 💖 Like",
-                            OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Like)
-                        },
-                    };
-                }
-                else
-                {
-                    notificationData.Actions = new[]
-                    {
-                        new NotificationData.Action
-                        {
-                            Key = ActionFactory.PlayerAction.Dislike.ToString(),
-                            Label = "💔 Dislike",
-                            OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Dislike)
-                        },
-                    };
-                }
+                SetActions(track, notificationData);
 
                 await _notificationClient.NotifyAsync(notificationData);
             });
+        }
+
+        private void SetActions(ITrack track, SpotitoastNotification notificationData)
+        {
+            if (!track.IsLoved)
+            {
+                notificationData.Actions = new[]
+                {
+                    new NotificationData.Action
+                    {
+                        Key = ActionFactory.PlayerAction.Like.ToString(),
+                        Label = " 💖 Like",
+                        OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Like)
+                    },
+                    new NotificationData.Action
+                    {
+                        Key = ActionFactory.PlayerAction.Skip.ToString(),
+                        Label = "⏭️Skip",
+                        OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
+                    },
+                };
+                return;
+            }
+
+            notificationData.Actions = new[]
+            {
+                new NotificationData.Action
+                {
+                    Key = ActionFactory.PlayerAction.Dislike.ToString(),
+                    Label = "💔 Dislike",
+                    OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Dislike)
+                },
+            };
         }
     }
 }
