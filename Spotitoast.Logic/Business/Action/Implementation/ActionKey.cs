@@ -8,7 +8,7 @@ namespace Spotitoast.Logic.Business.Action.Implementation
 
         public override string ToString()
         {
-            return $"{nameof(Key)}: {Key}";
+            return Key;
         }
 
         private ActionKey(string key)
