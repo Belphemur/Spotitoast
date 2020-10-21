@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Job.Scheduler\Job.Scheduler.csproj" />
     <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
   </ItemGroup>
 

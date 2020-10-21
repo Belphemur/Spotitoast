@@ -4,11 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading;
 using System.Threading.Tasks;
+using Job.Scheduler.Scheduler;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Models;
 using Spotitoast.Spotify.Client.Auth;
+using Spotitoast.Spotify.Client.Job;
 using Spotitoast.Spotify.Configuration;
 using Spotitoast.Spotify.Model;
 
@@ -27,14 +28,13 @@ namespace Spotitoast.Spotify.Client
         private readonly ISubject<FullTrack> _playedTrackSubject = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackLiked = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackDisliked = new Subject<FullTrack>();
-        private readonly Timer _timer;
         private SpotifyAuth _authClient;
 
         public IObservable<FullTrack> PlayedTrack => _playedTrackSubject.AsObservable();
         public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
         public IObservable<FullTrack> TrackDisliked => _trackDisliked.AsObservable();
 
-        public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration)
+        public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration, IJobScheduler jobScheduler)
         {
             _spotifyWebClient = new SpotifyWebAPI()
             {
@@ -45,7 +45,7 @@ namespace Spotitoast.Spotify.Client
             _authClient = new SpotifyAuth(authConfiguration);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
             _authClient.RefreshAccessToken();
-            _timer = InitTimerTrack();
+            jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this));
         }
 
         private void AuthOnTokenUpdated(object sender, SpotifyAuth.TokenUpdatedEventArg e)
@@ -54,20 +54,13 @@ namespace Spotitoast.Spotify.Client
             _spotifyWebClient.TokenType = e.NewToken.TokenType;
         }
 
-        private Timer InitTimerTrack()
+        internal async Task CheckCurrentPlayedTrackWithAutoRefresh()
         {
-            return new Timer(
-                callback: async e =>
-                {
-                    var result = await CheckCurrentPlayedTrack();
-                    if (result == ActionResult.Error)
-                    {
-                        _authClient.RefreshAccessToken();
-                    }
-                },
-                null,
-                TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(_webConfiguration.CheckCurrentlyPlayedSeconds));
+            var result = await CheckCurrentPlayedTrack();
+            if (result == ActionResult.Error)
+            {
+                _authClient.RefreshAccessToken();
+            }
         }
 
         private async Task<ActionResult> CheckCurrentPlayedTrack(bool forceNotify = false)
