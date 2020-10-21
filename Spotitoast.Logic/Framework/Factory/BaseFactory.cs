@@ -18,7 +18,7 @@ namespace Spotitoast.Logic.Framework.Factory
         /// <summary>
         /// All the available keys for the factory
         /// </summary>
-        public TKey[] AvailableKeys { get; } = (TKey[]) Enum.GetValues(typeof(TKey));
+        public IReadOnlyCollection<TKey> AvailableKeys { get; } = (TKey[]) Enum.GetValues(typeof(TKey));
 
         /// <summary>
         /// Get the action for the enum

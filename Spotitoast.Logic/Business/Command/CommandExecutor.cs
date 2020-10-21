@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Spotify.Model;
@@ -17,7 +18,7 @@ namespace Spotitoast.Logic.Business.Command
         /// <summary>
         /// What are the available commands
         /// </summary>
-        public ActionFactory.PlayerAction[] AvailableCommands => _actionFactory.AvailableKeys;
+        public IReadOnlyCollection<ActionFactory.PlayerAction> AvailableCommands => _actionFactory.AvailableKeys;
 
         /// <summary>
         /// Parse the command
