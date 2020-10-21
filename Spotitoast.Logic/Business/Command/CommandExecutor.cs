@@ -26,7 +26,7 @@ namespace Spotitoast.Logic.Business.Command
         public ActionKey? ParseCommand(string cmd)
         {
             ActionKey actionKey = cmd;
-            return _actionFactory.ContainsKey(actionKey) ? (ActionKey?) null : actionKey;
+            return _actionFactory.ContainsKey(actionKey) ? actionKey : (ActionKey?) null;
         }
 
         /// <summary>
