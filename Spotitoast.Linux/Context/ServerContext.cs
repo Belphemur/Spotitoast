@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Notify.Linux.Client;
 using SoundSwitch.InterProcess.Communication.Protocol;
 using Spotitoast.Linux.Notification;
-using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Logic.Business.Command;
 using Spotitoast.Spotify.Model;
 
@@ -41,7 +41,7 @@ namespace Spotitoast.Linux.Context
         private async Task HandleCommand(string cmd)
         {
             var action = _commandExecutor.ParseCommand(cmd);
-            if (action == null)
+            if (!action.HasValue)
             {
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
@@ -51,12 +51,12 @@ namespace Spotitoast.Linux.Context
                 return;
             }
 
-            await ExecuteCommand(action);
+            await ExecuteCommand(action.Value);
         }
 
-        private async Task ExecuteCommand(ActionFactory.PlayerAction? action)
+        private async Task ExecuteCommand(ActionKey action)
         {
-            var result = await _commandExecutor.Execute(action.Value);
+            var result = await _commandExecutor.Execute(action);
             switch (result)
             {
                 case ActionResult.Success:
