@@ -23,6 +23,8 @@ namespace Spotitoast.Logic.Framework.Factory
         /// <exception cref="T:System.Collections.Generic.KeyNotFoundException"></exception>
         public TImplementation Get(TKey key) => _dictionary[key];
 
+        public bool ContainsKey(TKey key) => _dictionary.ContainsKey(key);
+
         public IReadOnlyCollection<TImplementation> Values() => _dictionary.Values;
     }
 }

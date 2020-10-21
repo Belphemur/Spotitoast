@@ -22,5 +22,10 @@ namespace Spotitoast.Logic.Framework.Factory
         /// </summary>
         /// <returns></returns>
         IReadOnlyCollection<TImpl> Values();
+
+        /// <summary>
+        /// Is the key present in the factory
+        /// </summary>
+        bool ContainsKey(TKey key);
     }
 }
