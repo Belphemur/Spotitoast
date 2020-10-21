@@ -34,11 +34,14 @@ namespace Spotitoast.Linux.Context
                 await namedPipeServer.WaitForConnectionAsync();
                 var stringProtocol = new StreamString(namedPipeServer);
                 var cmd = stringProtocol.ReadString();
-                await HandleCommand(cmd);
+                if (await HandleCommand(cmd) == ActionResult.ExitApplication)
+                {
+                    return;
+                };
             }
         }
 
-        private async Task HandleCommand(string cmd)
+        private async Task<ActionResult> HandleCommand(string cmd)
         {
             var action = _commandExecutor.ParseCommand(cmd);
             if (!action.HasValue)
@@ -48,13 +51,13 @@ namespace Spotitoast.Linux.Context
                     Body = $"Command: {cmd}\nAvailable: {string.Join(", ", _commandExecutor.AvailableCommands)}",
                     Summary = "Spotitoast Unknown command"
                 });
-                return;
+                return ActionResult.Error;
             }
 
-            await ExecuteCommand(action.Value);
+            return await ExecuteCommand(action.Value);
         }
 
-        private async Task ExecuteCommand(ActionKey action)
+        private async Task<ActionResult> ExecuteCommand(ActionKey action)
         {
             var result = await _commandExecutor.Execute(action);
             switch (result)
@@ -80,9 +83,13 @@ namespace Spotitoast.Linux.Context
                 case ActionResult.Error:
                     await Console.Out.WriteLineAsync($"Couldn't execute action {action}");
                     break;
+                case ActionResult.ExitApplication:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            return result;
         }
     }
 }

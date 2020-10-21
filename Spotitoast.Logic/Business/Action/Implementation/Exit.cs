@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Spotitoast.Spotify.Model;
 
@@ -9,8 +8,7 @@ namespace Spotitoast.Logic.Business.Action.Implementation
 
         public Task<ActionResult> Execute()
         {
-            Environment.Exit(0);
-            return Task.FromResult(ActionResult.Success);
+            return Task.FromResult(ActionResult.ExitApplication);
         }
 
         public string Label { get; } = "Quit the app";
