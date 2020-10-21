@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Spotitoast.Spotify.Scheduler
+namespace Job.Scheduler.Utils
 {
     public static class TaskExtensions
     {
