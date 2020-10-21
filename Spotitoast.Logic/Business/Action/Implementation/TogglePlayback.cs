@@ -16,6 +16,6 @@ namespace Spotitoast.Logic.Business.Action.Implementation
         }
 
         public override string Label => "Toggle Playback";
-        public override ActionFactory.PlayerAction Enum => ActionFactory.PlayerAction.TogglePlayback;
+        public override ActionKey Key => ActionFactory.PlayerAction.TogglePlayback;
     }
 }

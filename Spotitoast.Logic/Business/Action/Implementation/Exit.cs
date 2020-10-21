@@ -6,7 +6,6 @@ namespace Spotitoast.Logic.Business.Action.Implementation
 {
     public class Exit : IAction
     {
-        public ActionFactory.PlayerAction Enum { get; } = ActionFactory.PlayerAction.Exit;
 
         public Task<ActionResult> Execute()
         {
@@ -15,5 +14,6 @@ namespace Spotitoast.Logic.Business.Action.Implementation
         }
 
         public string Label { get; } = "Quit the app";
+        public ActionKey Key => ActionFactory.PlayerAction.Exit;
     }
 }

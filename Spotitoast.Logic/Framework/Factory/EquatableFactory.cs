@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Ninject;
+using Ninject.Syntax;
 
 namespace Spotitoast.Logic.Framework.Factory
 {
-    public abstract class EquatableFactory<TImplementation, TKey> : IFactory<TKey, TImplementation>
+    public abstract class EquatableFactory<TKey, TImplementation> : IFactory<TKey, TImplementation>
         where TImplementation : IEquatableImplementation<TKey>
         where TKey : IEquatable<TKey>
     {
         private readonly Dictionary<TKey, TImplementation> _dictionary;
 
-        protected EquatableFactory(IEnumerable<TImplementation> enumerableOfImplementations)
+        protected EquatableFactory(IResolutionRoot resolutionRoot)
         {
-            _dictionary = enumerableOfImplementations.ToDictionary(impl => impl.Key);
+            _dictionary = resolutionRoot.GetAll<TImplementation>().ToDictionary(action => action.Key);
         }
 
         public IReadOnlyCollection<TKey> AvailableKeys => _dictionary.Keys;

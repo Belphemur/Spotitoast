@@ -16,6 +16,6 @@ namespace Spotitoast.Logic.Business.Action.Implementation
         }
 
         public override string Label => "Like Song";
-        public override ActionFactory.PlayerAction Enum => ActionFactory.PlayerAction.Like;
+        public override ActionKey Key => ActionFactory.PlayerAction.Like;
     }
 }

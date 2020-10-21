@@ -16,6 +16,6 @@ namespace Spotitoast.Logic.Business.Action.Implementation
         }
 
         public override string Label { get; } = "Skip track";
-        public override ActionFactory.PlayerAction Enum { get; } = ActionFactory.PlayerAction.Skip;
+        public override ActionKey Key => ActionFactory.PlayerAction.Skip;
     }
 }
