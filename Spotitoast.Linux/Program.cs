@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Job.Scheduler.Scheduler;
 using Ninject;
 using Spotitoast.Linux.Context;
 
@@ -18,6 +19,7 @@ namespace Spotitoast.Linux
             {
                 await Console.Out.WriteLineAsync("Running as server.");
                 await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStart(pipeName);
+                await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync();
                 return;
             }
 
