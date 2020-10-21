@@ -6,6 +6,11 @@ namespace Spotitoast.Logic.Business.Action.Implementation
     {
         public string Key { get; }
 
+        public override string ToString()
+        {
+            return $"{nameof(Key)}: {Key}";
+        }
+
         private ActionKey(string key)
         {
             Key = key;
