@@ -215,7 +215,11 @@ namespace Spotitoast.Spotify.Client
         public async Task<ActionResult> Resume()
         {
             var deviceId = _playbackContext?.Device?.Id;
-            return await ResumeInternal(deviceId);
+            var result = await ResumeInternal(deviceId);
+            if (result == ActionResult.Error)
+                return result;
+
+            return await CheckCurrentPlayedTrack(true);
         }
 
         private async Task<ActionResult> ResumeInternal(string deviceId)
