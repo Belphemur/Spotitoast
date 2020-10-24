@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Forms;
 using Job.Scheduler.Scheduler;
 using Ninject;
@@ -33,7 +34,9 @@ namespace Spotitoast
             Application.Run(Bootstrap.Kernel.Get<SpotitoastContext>());
 
             HotKeyHandler.Stop();
-            Bootstrap.Kernel.Get<IJobScheduler>().StopAsync().GetAwaiter().GetResult();
+            var cancellationSource = new CancellationTokenSource();
+            cancellationSource.CancelAfter(TimeSpan.FromSeconds(5));
+            Bootstrap.Kernel.Get<IJobScheduler>().StopAsync(cancellationSource.Token).GetAwaiter().GetResult();
         }
     }
 }
