@@ -16,8 +16,6 @@ namespace Spotitoast.Logic.Business.Action.Implementation
         }
 
         public override string Label { get; } = "Currently Playing Track";
-        public override ActionFactory.PlayerAction Enum { get; } = ActionFactory.PlayerAction.CurrentlyPlaying;
-
-       
+        public override ActionKey Key => ActionFactory.PlayerAction.CurrentlyPlaying;
     }
 }

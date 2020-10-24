@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
-using Spotitoast.Logic.Framework;
+using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Logic.Framework.Factory;
 using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action
 {
-    public interface IAction : IEnumImplementation<ActionFactory.PlayerAction>
+    public interface IAction : IEquatableImplementation<ActionKey>
     {
         /// <summary>
         /// Execute the action

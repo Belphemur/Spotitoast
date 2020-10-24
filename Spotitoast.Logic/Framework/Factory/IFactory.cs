@@ -2,13 +2,13 @@
 
 namespace Spotitoast.Logic.Framework.Factory
 {
-    public interface IFactory<TKey, out TImpl> where TImpl : IEnumImplementation<TKey>
+    public interface IFactory<TKey, out TImpl>
     {
         
         /// <summary>
         /// All the available keys for the factory
         /// </summary>
-        public TKey[] AvailableKeys { get; }
+        public IReadOnlyCollection<TKey> AvailableKeys { get; }
         
         /// <summary>
         /// Get the Implementation from the key
@@ -22,5 +22,10 @@ namespace Spotitoast.Logic.Framework.Factory
         /// </summary>
         /// <returns></returns>
         IReadOnlyCollection<TImpl> Values();
+
+        /// <summary>
+        /// Is the key present in the factory
+        /// </summary>
+        bool ContainsKey(TKey key);
     }
 }

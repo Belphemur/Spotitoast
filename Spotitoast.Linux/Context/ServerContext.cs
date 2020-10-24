@@ -3,9 +3,9 @@ using System.IO.Pipes;
 using System.Threading.Tasks;
 using Notify.Linux.Client;
 using SoundSwitch.InterProcess.Communication.Protocol;
-using Spotitoast.Linux.Command;
 using Spotitoast.Linux.Notification;
-using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Action.Implementation;
+using Spotitoast.Logic.Business.Command;
 using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Linux.Context
@@ -34,29 +34,32 @@ namespace Spotitoast.Linux.Context
                 await namedPipeServer.WaitForConnectionAsync();
                 var stringProtocol = new StreamString(namedPipeServer);
                 var cmd = stringProtocol.ReadString();
-                await HandleCommand(cmd);
+                if (await HandleCommand(cmd) == ActionResult.ExitApplication)
+                {
+                    return;
+                };
             }
         }
 
-        private async Task HandleCommand(string cmd)
+        private async Task<ActionResult> HandleCommand(string cmd)
         {
             var action = _commandExecutor.ParseCommand(cmd);
-            if (action == null)
+            if (!action.HasValue)
             {
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
                     Body = $"Command: {cmd}\nAvailable: {string.Join(", ", _commandExecutor.AvailableCommands)}",
                     Summary = "Spotitoast Unknown command"
                 });
-                return;
+                return ActionResult.Error;
             }
 
-            await ExecuteCommand(action);
+            return await ExecuteCommand(action.Value);
         }
 
-        private async Task ExecuteCommand(ActionFactory.PlayerAction? action)
+        private async Task<ActionResult> ExecuteCommand(ActionKey action)
         {
-            var result = await _commandExecutor.Execute(action.Value);
+            var result = await _commandExecutor.Execute(action);
             switch (result)
             {
                 case ActionResult.Success:
@@ -80,9 +83,13 @@ namespace Spotitoast.Linux.Context
                 case ActionResult.Error:
                     await Console.Out.WriteLineAsync($"Couldn't execute action {action}");
                     break;
+                case ActionResult.ExitApplication:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            return result;
         }
     }
 }

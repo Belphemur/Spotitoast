@@ -1,9 +1,10 @@
-using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Linux.Command
+namespace Spotitoast.Logic.Business.Command
 {
     public class CommandExecutor : ICommandExecutor
     {
@@ -17,24 +18,20 @@ namespace Spotitoast.Linux.Command
         /// <summary>
         /// What are the available commands
         /// </summary>
-        public ActionFactory.PlayerAction[] AvailableCommands => _actionFactory.AvailableKeys;
+        public IReadOnlyCollection<ActionKey> AvailableCommands => _actionFactory.AvailableKeys;
 
         /// <summary>
         /// Parse the command
         /// </summary>
-        public ActionFactory.PlayerAction? ParseCommand(string cmd)
+        public ActionKey? ParseCommand(string cmd)
         {
-            if (!Enum.TryParse(typeof(ActionFactory.PlayerAction), cmd, true, out var @enum))
-            {
-                return null;
-            }
-
-            return (ActionFactory.PlayerAction) @enum!;
+            ActionKey actionKey = cmd;
+            return _actionFactory.ContainsKey(actionKey) ? actionKey : (ActionKey?) null;
         }
 
         /// <summary>
         /// Execute the command
         /// </summary>
-        public Task<ActionResult> Execute(ActionFactory.PlayerAction action) => _actionFactory.Get(action).Execute();
+        public Task<ActionResult> Execute(ActionKey action) => _actionFactory.Get(action).Execute();
     }
 }

@@ -1,24 +1,25 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Linux.Command
+namespace Spotitoast.Logic.Business.Command
 {
     public interface ICommandExecutor
     {
         /// <summary>
         /// Parse the command
         /// </summary>
-        ActionFactory.PlayerAction? ParseCommand(string cmd);
+        ActionKey? ParseCommand(string cmd);
 
         /// <summary>
         /// Execute the command
         /// </summary>
-        Task<ActionResult> Execute(ActionFactory.PlayerAction action);
+        Task<ActionResult> Execute(ActionKey action);
 
         /// <summary>
         /// What are the available commands
         /// </summary>
-        ActionFactory.PlayerAction[] AvailableCommands { get; }
+        IReadOnlyCollection<ActionKey> AvailableCommands { get; }
     }
 }

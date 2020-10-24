@@ -6,6 +6,7 @@
         NoTrackPlayed,
         AlreadyLiked,
         NotLiked,
-        Error
+        Error,
+        ExitApplication
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Spotify.Client;
 using Spotitoast.Spotify.Model;
 
@@ -15,6 +16,6 @@ namespace Spotitoast.Logic.Business.Action
 
         public abstract Task<ActionResult> Execute();
         public abstract string Label { get; }
-        public abstract ActionFactory.PlayerAction Enum { get; }
+        public abstract ActionKey Key { get; }
     }
 }
