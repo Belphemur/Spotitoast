@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Timers;
 using JetBrains.Annotations;
+using Job.Scheduler.Scheduler;
 using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Models;
 using Spotitoast.Configuration;
+using Spotitoast.Spotify.Client.Job;
 using Spotitoast.Spotify.Configuration;
 
 namespace Spotitoast.Spotify.Client.Auth
@@ -22,9 +25,9 @@ namespace Spotitoast.Spotify.Client.Auth
         }
 
         private readonly SpotifyAuthConfiguration _config;
-        private readonly TokenSwapAuth _tokenSwapAuth;
-        private readonly Timer _refreshTimer = new Timer();
-        private bool _gettingToken = false;
+        private readonly IJobScheduler            _jobScheduler;
+        private readonly TokenSwapAuth            _tokenSwapAuth;
+        private          bool                     _gettingToken = false;
 
         /// <summary>
         /// Currently used token
@@ -37,9 +40,10 @@ namespace Spotitoast.Spotify.Client.Auth
         /// </summary>
         public event EventHandler<TokenUpdatedEventArg> TokenUpdated;
 
-        public SpotifyAuth(SpotifyAuthConfiguration configuration)
+        public SpotifyAuth(SpotifyAuthConfiguration configuration, IJobScheduler jobScheduler)
         {
-            _config = configuration;
+            _config            = configuration;
+            _jobScheduler = jobScheduler;
             _tokenSwapAuth = new TokenSwapAuth(
                 exchangeServerUri: _config.ExchangeUrl,
                 serverUri: _config.InnerServerUrl,
@@ -48,8 +52,6 @@ namespace Spotitoast.Spotify.Client.Auth
             {
                 TimeAccessExpiry = false
             };
-
-            _refreshTimer.Elapsed += (sender, args) => RefreshToken();
             ConfigureAuthClient();
         }
 
@@ -71,12 +73,10 @@ namespace Spotitoast.Spotify.Client.Auth
 
         private void RestartTimer(double timeToRefresh)
         {
-            _refreshTimer.Stop();
-            _refreshTimer.Interval = (timeToRefresh - 60) * 1000L;
-            _refreshTimer.Start();
+            _jobScheduler.ScheduleJob(new RefreshTokenJob(this, TimeSpan.FromSeconds(timeToRefresh - 60)));
         }
 
-        private async void RefreshToken()
+        internal async void RefreshToken()
         {
             var token = await _tokenSwapAuth.RefreshAuthAsync(_config.LastToken?.RefreshToken);
             if (token == null)

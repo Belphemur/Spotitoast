@@ -42,7 +42,7 @@ namespace Spotitoast.Spotify.Client
                 UseAutoRetry = true
             };
             _webConfiguration = webConfiguration;
-            _authClient = new SpotifyAuth(authConfiguration);
+            _authClient = new SpotifyAuth(authConfiguration, jobScheduler);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
             _authClient.RefreshAccessToken();
             jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this));
