@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Job.Scheduler.Scheduler;
 using Ninject;
 using Spotitoast.Banner.Client;
 using Spotitoast.Configuration;
@@ -21,13 +22,14 @@ namespace Spotitoast
         [STAThread]
         private static void Main()
         {
-            Bootstrap.Kernel
-                .Bind<HotkeysConfiguration>()
-                .ToMethod(context =>
-                    (context.Kernel.Get<ConfigurationManager>()).LoadConfiguration<HotkeysConfiguration>().Result)
-                .InSingletonScope();
-
+            var _ = new[] {typeof(IJobScheduler)};
             Bootstrap.Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
+            Bootstrap.Kernel
+                     .Bind<HotkeysConfiguration>()
+                     .ToMethod(context =>
+                         (context.Kernel.Get<ConfigurationManager>()).LoadConfiguration<HotkeysConfiguration>().GetAwaiter().GetResult())
+                     .InSingletonScope();
+
 
             HotKeyHandler.Start();
 
