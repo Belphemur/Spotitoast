@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Job.Scheduler.Scheduler;
@@ -38,6 +39,7 @@ namespace Spotitoast
             Application.Run(Bootstrap.Kernel.Get<SpotitoastContext>());
 
             HotKeyHandler.Stop();
+            Bootstrap.Kernel.Get<IJobScheduler>().StopAsync().GetAwaiter().GetResult();
         }
     }
 }
