@@ -98,27 +98,27 @@ namespace Spotitoast.Spotify.Client.Auth
         /// Refresh the Access Token
         /// </summary>
         /// <param name="forceRenewal"></param>
-        public void RefreshAccessToken(bool forceRenewal = false)
+        public Task RefreshAccessToken(bool forceRenewal = false)
         {
             if (forceRenewal)
             {
                 RequestNewToken();
-                return;
+                return Task.CompletedTask;
             }
 
             if (_config.LastToken == null)
             {
                 RequestNewToken();
-                return;
+                return Task.CompletedTask;
             }
 
             if (_config.LastToken.HasError())
             {
                 RequestNewToken();
-                return;
+                return Task.CompletedTask;
             }
 
-            RefreshToken();
+            return RefreshToken();
         }
 
         private void RequestNewToken()
