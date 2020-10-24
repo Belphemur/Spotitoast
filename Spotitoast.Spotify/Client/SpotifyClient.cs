@@ -44,7 +44,7 @@ namespace Spotitoast.Spotify.Client
             _webConfiguration = webConfiguration;
             _authClient = new SpotifyAuth(authConfiguration, jobScheduler);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
-            jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this));
+            jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this, TimeSpan.FromSeconds(_webConfiguration.CheckCurrentlyPlayedSeconds)));
         }
 
         private void AuthOnTokenUpdated(object sender, SpotifyAuth.TokenUpdatedEventArg e)

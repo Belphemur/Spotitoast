@@ -10,9 +10,10 @@ namespace Spotitoast.Spotify.Client.Job
     {
         private readonly SpotifyClient _client;
 
-        public CheckCurrentlyPlayingJob(SpotifyClient client)
+        public CheckCurrentlyPlayingJob(SpotifyClient client, TimeSpan delay)
         {
-            _client = client;
+            _client    = client;
+            Delay = delay;
         }
 
         public Task ExecuteAsync(CancellationToken cancellationToken)
@@ -27,6 +28,6 @@ namespace Spotitoast.Spotify.Client.Job
             return Task.FromResult(true);
         }
 
-        public TimeSpan Delay { get; } = TimeSpan.FromSeconds(15);
+        public TimeSpan Delay { get; }
     }
 }
