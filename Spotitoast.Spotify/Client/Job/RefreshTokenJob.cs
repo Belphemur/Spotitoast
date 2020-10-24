@@ -19,8 +19,7 @@ namespace Spotitoast.Spotify.Client.Job
 
         public Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _auth.RefreshToken();
-            return Task.CompletedTask;
+            return _auth.RefreshToken();
         }
 
         public Task<bool> OnFailure(JobException exception)

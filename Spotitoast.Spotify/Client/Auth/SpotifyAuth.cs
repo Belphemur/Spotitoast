@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using JetBrains.Annotations;
 using Job.Scheduler.Scheduler;
@@ -76,7 +77,7 @@ namespace Spotitoast.Spotify.Client.Auth
             _jobScheduler.ScheduleJob(new RefreshTokenJob(this, TimeSpan.FromSeconds(timeToRefresh - 60)));
         }
 
-        internal async void RefreshToken()
+        internal async Task RefreshToken()
         {
             var token = await _tokenSwapAuth.RefreshAuthAsync(_config.LastToken?.RefreshToken);
             if (token == null)
@@ -90,7 +91,7 @@ namespace Spotitoast.Spotify.Client.Auth
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
             var timeToRefresh = _config.LastToken.ExpiresIn;
             RestartTimer(timeToRefresh);
-            Trace.WriteLine("Token Refreshed");
+            Trace.Write("Token Refreshed");
         }
 
         /// <summary>
