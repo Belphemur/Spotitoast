@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
+using Job.Scheduler.Scheduler;
 using Ninject;
-using Spotitoast.Banner.Client;
 using Spotitoast.Configuration;
 using Spotitoast.Context;
 using Spotitoast.HotKeys.Handler;
@@ -21,13 +18,14 @@ namespace Spotitoast
         [STAThread]
         private static void Main()
         {
-            Bootstrap.Kernel
-                .Bind<HotkeysConfiguration>()
-                .ToMethod(context =>
-                    (context.Kernel.Get<ConfigurationManager>()).LoadConfiguration<HotkeysConfiguration>().Result)
-                .InSingletonScope();
-
+            var _ = new[] {typeof(IJobScheduler)};
             Bootstrap.Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
+            Bootstrap.Kernel
+                     .Bind<HotkeysConfiguration>()
+                     .ToMethod(context =>
+                         (context.Kernel.Get<ConfigurationManager>()).LoadConfiguration<HotkeysConfiguration>().GetAwaiter().GetResult())
+                     .InSingletonScope();
+
 
             HotKeyHandler.Start();
 
@@ -36,6 +34,9 @@ namespace Spotitoast
             Application.Run(Bootstrap.Kernel.Get<SpotitoastContext>());
 
             HotKeyHandler.Stop();
+            var cancellationSource = new CancellationTokenSource();
+            cancellationSource.CancelAfter(TimeSpan.FromSeconds(5));
+            Bootstrap.Kernel.Get<IJobScheduler>().StopAsync(cancellationSource.Token).GetAwaiter().GetResult();
         }
     }
 }

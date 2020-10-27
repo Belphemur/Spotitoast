@@ -1,28 +1,27 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Job;
 using Job.Scheduler.Job.Exception;
+using Spotitoast.Spotify.Client.Auth;
 
 namespace Spotitoast.Spotify.Client.Job
 {
-    public class CheckCurrentlyPlayingJob : IRecurringJob
+    internal class RefreshTokenJob : IDelayedJob
     {
-        private readonly SpotifyClient _client;
+        private readonly SpotifyAuth _auth;
 
-        public CheckCurrentlyPlayingJob(SpotifyClient client, TimeSpan delay)
+        public RefreshTokenJob(SpotifyAuth auth, TimeSpan delay)
         {
-            _client    = client;
             Delay = delay;
+            _auth = auth;
         }
 
         public Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-                return Task.CompletedTask;
-
-            return _client.CheckCurrentPlayedTrackWithAutoRefresh();
+            return _auth.RefreshToken();
         }
+
         public Task<bool> OnFailure(JobException exception)
         {
             return Task.FromResult(true);

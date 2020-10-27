@@ -37,7 +37,7 @@ namespace Spotitoast.Configuration
             }
             else
             {
-                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 using var reader = new StreamReader(stream);
                 var contents = await reader.ReadToEndAsync();
 

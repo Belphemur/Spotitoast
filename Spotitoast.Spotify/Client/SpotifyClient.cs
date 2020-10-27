@@ -36,16 +36,20 @@ namespace Spotitoast.Spotify.Client
 
         public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration, IJobScheduler jobScheduler)
         {
-            _spotifyWebClient = new SpotifyWebAPI()
+            _spotifyWebClient = new SpotifyWebAPI
             {
                 UseAuth = true,
                 UseAutoRetry = true
             };
+            if (authConfiguration.LastToken != null)
+            {
+                _spotifyWebClient.AccessToken = authConfiguration.LastToken.AccessToken;
+                _spotifyWebClient.TokenType   = authConfiguration.LastToken.TokenType;
+            }
             _webConfiguration = webConfiguration;
-            _authClient = new SpotifyAuth(authConfiguration);
+            _authClient = new SpotifyAuth(authConfiguration, jobScheduler);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
-            _authClient.RefreshAccessToken();
-            jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this));
+            jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this, TimeSpan.FromSeconds(_webConfiguration.CheckCurrentlyPlayedSeconds)));
         }
 
         private void AuthOnTokenUpdated(object sender, SpotifyAuth.TokenUpdatedEventArg e)
@@ -59,7 +63,7 @@ namespace Spotitoast.Spotify.Client
             var result = await CheckCurrentPlayedTrack();
             if (result == ActionResult.Error)
             {
-                _authClient.RefreshAccessToken();
+                await _authClient.RefreshAccessToken();
             }
         }
 
