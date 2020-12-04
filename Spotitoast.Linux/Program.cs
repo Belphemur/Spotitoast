@@ -15,15 +15,18 @@ namespace Spotitoast.Linux
             var pipeName = $"Spotitoast-{Environment.UserName}";
             using var mutex = new Mutex(true, @$"Global\{pipeName}", out var createdNew);
             //When creating the mutex, we run a server
+            var port = 25255;
             if (createdNew)
             {
                 await Console.Out.WriteLineAsync("Running as server.");
-                await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStart(pipeName);
+                await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStart(port);
                 await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync();
                 return;
             }
 
-            await Logic.Dependencies.Bootstrap.Kernel.Get<ClientContext>().SendCommand(pipeName, args);
+            using var clientContext = Logic.Dependencies.Bootstrap.Kernel.Get<ClientContext>();
+            await clientContext.ConnectAsync(port);
+            await clientContext.SendCommand(args);
         }
     }
 }

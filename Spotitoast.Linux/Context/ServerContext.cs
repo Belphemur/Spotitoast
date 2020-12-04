@@ -1,8 +1,8 @@
 using System;
-using System.IO.Pipes;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Notify.Linux.Client;
-using SoundSwitch.InterProcess.Communication.Protocol;
 using Spotitoast.Linux.Notification;
 using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Logic.Business.Command;
@@ -23,21 +23,37 @@ namespace Spotitoast.Linux.Context
             _notificationClient = notificationClient;
         }
 
-        public async Task EventLoopStart(string pipeName)
+        public async Task EventLoopStart(int port)
         {
             _notificationHandler.RegisterNotifications();
-         
+            var bytes = new Byte[256];
+            String cmd = null;
+            var tcpListener = new TcpListener(IPAddress.Loopback, port);
+            tcpListener.Start();
             while (true)
             {
-                await using var namedPipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut);
-                // Wait for a client to connect
-                await namedPipeServer.WaitForConnectionAsync();
-                var stringProtocol = new StreamString(namedPipeServer);
-                var cmd = stringProtocol.ReadString();
-                if (await HandleCommand(cmd) == ActionResult.ExitApplication)
+                using var client = await tcpListener.AcceptTcpClientAsync();
+                var stream = client.GetStream();
+
+
+                int i;
+
+                // Loop to receive all the data sent by the client.
+                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                 {
-                    return;
-                };
+                    // Translate data bytes to a ASCII string.
+                    cmd = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+
+                    var commandResult = await HandleCommand(cmd);
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes(commandResult.ToString());
+
+                    // Send back a response.
+                    stream.Write(msg, 0, msg.Length);
+                    if (commandResult == ActionResult.ExitApplication)
+                    {
+                        return;
+                    }
+                }
             }
         }
 
