@@ -1,5 +1,4 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
 using Spotitoast.Configuration;
@@ -42,7 +41,7 @@ namespace Spotitoast.Spotify.Configuration
                 _lastToken.ExpiresIn = accessToken.ExpiresIn;
                 _lastToken.CreateDate = accessToken.CreateDate;
             }
-            PropertyChanged($@"LastToken");
+            PropertyChanged(nameof(LastToken));
         }
 
         public override void Migrate()

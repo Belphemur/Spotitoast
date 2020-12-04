@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using JetBrains.Annotations;
 using Job.Scheduler.Scheduler;
 using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Models;
-using Spotitoast.Configuration;
 using Spotitoast.Spotify.Client.Job;
 using Spotitoast.Spotify.Configuration;
 
@@ -65,18 +62,9 @@ namespace Spotitoast.Spotify.Client.Auth
                 TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
                 _tokenSwapAuth.Stop();
                 _gettingToken = false;
-
-                var timeToRefresh = _config.LastToken?.ExpiresIn ?? 3600;
-
-                RestartTimer(timeToRefresh);
             };
+            _jobScheduler.ScheduleJob(new RefreshTokenRecurringJob(this, _config));
         }
-
-        private void RestartTimer(double timeToRefresh)
-        {
-            _jobScheduler.ScheduleJob(new RefreshTokenJob(this, TimeSpan.FromSeconds(timeToRefresh - 60)));
-        }
-
         internal async Task RefreshToken()
         {
             var token = await _tokenSwapAuth.RefreshAuthAsync(_config.LastToken?.RefreshToken);
@@ -89,8 +77,6 @@ namespace Spotitoast.Spotify.Client.Auth
             _config.UpdateAccessToken(token);
 
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
-            var timeToRefresh = _config.LastToken.ExpiresIn;
-            RestartTimer(timeToRefresh);
             Trace.Write("Token Refreshed");
         }
 
