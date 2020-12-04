@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -32,7 +33,7 @@ namespace Spotitoast.Spotify.Client.Job
         private void SetDelayFromToken([CanBeNull]Token token)
         {
             Delay = TimeSpan.FromSeconds(token?.ExpiresIn ?? 3600) - TimeSpan.FromSeconds(60);
-            Console.Out.WriteLine($"Update delay of Refresh job to {Delay}");
+            Trace.WriteLine($"Update delay of Refresh job to {Delay}");
         }
 
         public Task ExecuteAsync(CancellationToken cancellationToken)
