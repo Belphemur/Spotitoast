@@ -24,14 +24,14 @@ namespace Spotitoast.Spotify.Client.Job
                 {
                     return;
                 }
+
                 SetDelayFromToken(authConfiguration.LastToken);
             });
-            
         }
 
-        private void SetDelayFromToken([CanBeNull]SpotifyAuthConfiguration.Token token)
+        private void SetDelayFromToken([CanBeNull] SpotifyAuthConfiguration.Token token)
         {
-            Delay = (token?.Expire ?? TimeSpan.FromSeconds(3600)) - TimeSpan.FromSeconds(60);
+            Delay = (token?.ExpirationDate != null ? token!.Expire : TimeSpan.FromSeconds(70)) - TimeSpan.FromSeconds(60);
             Trace.WriteLine($"Update delay of Refresh job to {Delay}");
         }
 
