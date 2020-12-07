@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.Loader;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Scheduler;
@@ -16,7 +18,7 @@ namespace Spotitoast.Linux
             var mutexName = $"Spotitoast-{Environment.UserName}";
             using var mutex = new Mutex(true, @$"Global\{mutexName}", out var createdNew);
             //When creating the mutex, we run a server
-            var port = 25255;
+            var port = Port();
             if (createdNew)
             {
                 await RunServer(port);
@@ -45,10 +47,19 @@ namespace Spotitoast.Linux
             AssemblyLoadContext.Default.Unloading += _ => cts.Cancel();
             AppDomain.CurrentDomain.ProcessExit += (_, _) => { cts.Cancel(); };
 
-            await Console.Out.WriteLineAsync("Running as server.");
+            await Console.Out.WriteLineAsync($"Running as server on port {port}");
             await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStartAsync(port, cts.Token);
             await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync(cts.Token);
             Environment.Exit(0);
+        }
+
+        private static int Port()
+        {
+            var md5Hasher = MD5.Create();
+            var hashed = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(Environment.UserName));
+            var intValue = BitConverter.ToInt32(hashed, 0);
+            var random = new Random(intValue);
+            return random.Next(20000, 21000);
         }
     }
 }
