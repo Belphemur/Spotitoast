@@ -82,6 +82,7 @@ namespace Spotitoast.Spotify.Client
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (trackResponse == null || !trackResponse.IsPlaying)
                 {
+                    _playbackContext = trackResponse;
                     return ActionResult.NoTrackPlayed;
                 }
 
@@ -299,7 +300,7 @@ namespace Spotitoast.Spotify.Client
                 var devices = await _spotifyWebClient.Player.GetAvailableDevices();
                 return devices.Devices.First(device => device.Type.ToLower() == "computer");
             }
-            catch (APIException e)
+            catch (APIException)
             {
                 return null;
             }
