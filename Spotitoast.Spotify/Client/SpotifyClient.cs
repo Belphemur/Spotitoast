@@ -1,24 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Net;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Job.Scheduler.Scheduler;
 using SpotifyAPI.Web;
 using Spotitoast.Spotify.Client.Auth;
 using Spotitoast.Spotify.Client.Job;
 using Spotitoast.Spotify.Configuration;
 using Spotitoast.Spotify.Model;
+using SpotifyWebClient = SpotifyAPI.Web.SpotifyClient;
 
 namespace Spotitoast.Spotify.Client
 {
     public class SpotifyClient
     {
-        private readonly SpotifyClient _spotifyWebClient;
+        private SpotifyWebClient _spotifyWebClient;
         private readonly SpotifyWebClientConfiguration _webConfiguration;
 
-        private PlaybackContext _playbackContext;
+        private CurrentlyPlaying _playbackContext;
 
         public bool IsPlaying => _playbackContext?.IsPlaying ?? false;
 
@@ -34,16 +37,11 @@ namespace Spotitoast.Spotify.Client
 
         public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration, IJobScheduler jobScheduler)
         {
-            _spotifyWebClient = new SpotifyWebAPI
-            {
-                UseAuth = true,
-                UseAutoRetry = true
-            };
             if (authConfiguration.LastToken != null)
             {
-                _spotifyWebClient.AccessToken = authConfiguration.LastToken.AccessToken;
-                _spotifyWebClient.TokenType   = authConfiguration.LastToken.TokenType;
+                _spotifyWebClient = new SpotifyWebClient(authConfiguration.LastToken.AccessToken);
             }
+
             _webConfiguration = webConfiguration;
             _authClient = new SpotifyAuth(authConfiguration, jobScheduler);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
@@ -52,8 +50,7 @@ namespace Spotitoast.Spotify.Client
 
         private void AuthOnTokenUpdated(object sender, SpotifyAuth.TokenUpdatedEventArg e)
         {
-            _spotifyWebClient.AccessToken = e.NewToken.AccessToken;
-            _spotifyWebClient.TokenType = e.NewToken.TokenType;
+            _spotifyWebClient = new SpotifyWebClient(e.NewToken.AccessToken);
         }
 
         internal async Task CheckCurrentPlayedTrackWithAutoRefresh()
@@ -70,35 +67,31 @@ namespace Spotitoast.Spotify.Client
             try
             {
                 Trace.WriteLine("Checking for playing track");
-                var trackResponse = await _spotifyWebClient.GetPlayingTrackAsync();
+                var trackResponse = await _spotifyWebClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
 
-                if (trackResponse.HasError())
+                if (!(trackResponse.Item is FullTrack fullTrack))
                 {
-                    Trace.WriteLine(trackResponse.Error.Message);
                     return ActionResult.Error;
                 }
 
-                var oldTrack = _playbackContext?.Item;
+
+                var oldTrack = _playbackContext?.Item as FullTrack;
                 _playbackContext = trackResponse;
 
-                var playedTrack = _playbackContext?.Item;
+                var playedTrack = fullTrack;
 
-                Trace.WriteLine($"Track Found: ${playedTrack?.Id}");
-
-                if (playedTrack == null)
-                {
-                    return ActionResult.Error;
-                }
+                Trace.WriteLine($"Track Found: ${fullTrack.Id}");
 
                 if (forceNotify
                     || oldTrack == null
-                    || playedTrack.Id != oldTrack.Id)
+                    || fullTrack.Id != oldTrack.Id)
                 {
                     _playedTrackSubject.OnNext(playedTrack);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Trace.WriteLine(e);
                 return ActionResult.Error;
             }
 
@@ -111,7 +104,7 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> LikePlayedTrack()
         {
-            var track = _playbackContext?.Item;
+            var track = _playbackContext?.Item as FullTrack;
             var trackId = track?.Id;
 
             Trace.WriteLine($"Loving ${trackId}.");
@@ -121,10 +114,17 @@ namespace Spotitoast.Spotify.Client
                 return loveState;
             }
 
-            var result = await _spotifyWebClient.SaveTrackAsync(trackId);
-            if (result.HasError())
+            try
             {
-                Trace.WriteLine(result.Error.Message);
+                var result = await _spotifyWebClient.Library.SaveTracks(new LibrarySaveTracksRequest(new[] {trackId}));
+                if (!result)
+                {
+                    return ActionResult.Error;
+                }
+            }
+            catch (APIException e)
+            {
+                Trace.Write(e);
                 return ActionResult.Error;
             }
 
@@ -156,13 +156,16 @@ namespace Spotitoast.Spotify.Client
                 return ActionResult.NoTrackPlayed;
             }
 
-            var isLovedResult = await _spotifyWebClient.CheckSavedTracksAsync(new List<string> {trackId});
-            if (isLovedResult.HasError())
+            try
             {
+                var isLovedResult = await _spotifyWebClient.Library.CheckTracks(new LibraryCheckTracksRequest(new[] {trackId}));
+                return isLovedResult.First() ? ActionResult.AlreadyLiked : ActionResult.NotLiked;
+            }
+            catch (APIException e)
+            {
+                Trace.Write(e);
                 return ActionResult.Error;
             }
-
-            return isLovedResult.List.First() ? ActionResult.AlreadyLiked : ActionResult.NotLiked;
         }
 
         /// <summary>
@@ -171,11 +174,11 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> DislikePlayedTrack()
         {
-            var track = _playbackContext?.Item;
+            var track = _playbackContext?.Item as FullTrack;
             var trackId = track?.Id;
             Trace.WriteLine($"Dislinking ${trackId}.");
             var resultSkip = await SkipTrack();
-            
+
             if (resultSkip == ActionResult.Error)
             {
                 return resultSkip;
@@ -189,8 +192,21 @@ namespace Spotitoast.Spotify.Client
                 return loveState;
             }
 
-            var result = await _spotifyWebClient.RemoveSavedTracksAsync(new List<string> {trackId});
-            return result.HasError() ? ActionResult.Error : ActionResult.Success;
+            try
+            {
+                var result = await _spotifyWebClient.Library.RemoveTracks(new LibraryRemoveTracksRequest(new[] {trackId}));
+                if (!result)
+                {
+                    return ActionResult.NotLiked;
+                }
+            }
+            catch (APIException e)
+            {
+                Trace.Write(e);
+                return ActionResult.Error;
+            }
+
+            return ActionResult.Success;
         }
 
         /// <summary>
@@ -199,11 +215,19 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> SkipTrack()
         {
-            var result = await _spotifyWebClient.SkipPlaybackToNextAsync();
             Trace.WriteLine("Skipping track");
-            if (result.HasError())
+            try
             {
-                Trace.WriteLine(result.Error.Message);
+                var result = await _spotifyWebClient.Player.SkipNext();
+                if (!result)
+                {
+                    return ActionResult.Error;
+                }
+
+            }
+            catch (APIException e)
+            {
+                Trace.Write(e);
                 return ActionResult.Error;
             }
 
@@ -216,21 +240,24 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> Resume()
         {
-            var deviceId = _playbackContext?.Device?.Id;
-            var result = await ResumeInternal(deviceId);
+            var result = await ResumeInternal();
             if (result == ActionResult.Error)
                 return result;
 
             return await CheckCurrentPlayedTrack(true);
         }
 
-        private async Task<ActionResult> ResumeInternal(string deviceId)
+        private async Task<ActionResult> ResumeInternal([CanBeNull] string deviceId = null)
         {
-            var result =
-                await _spotifyWebClient.ResumePlaybackAsync(deviceId, "",
-                    null, "", 0);
+            try
+            {
+                var result = await _spotifyWebClient.Player.ResumePlayback(new PlayerResumePlaybackRequest
+                {
+                    DeviceId = deviceId
+                });
 
-            if (deviceId == null && result.HasError() && result.Error.Status == 404)
+            }
+            catch (APIException e) when (e.Response?.StatusCode == HttpStatusCode.NotFound)
             {
                 var firstDevice = await GetFirstDevice();
                 if (firstDevice == null)
@@ -240,12 +267,11 @@ namespace Spotitoast.Spotify.Client
 
                 return await ResumeInternal(firstDevice.Id);
             }
-
-            if (result.HasError())
+            catch (Exception e)
             {
+                Trace.Write(e);
                 return ActionResult.Error;
             }
-
 
             if (_playbackContext != null) _playbackContext.IsPlaying = true;
 
@@ -254,8 +280,15 @@ namespace Spotitoast.Spotify.Client
 
         private async Task<Device> GetFirstDevice()
         {
-            var devices = await _spotifyWebClient.GetDevicesAsync();
-            return devices.HasError() ? null : devices.Devices.First(device => device.Type.ToLower() == "computer");
+            try
+            {
+                var devices = await _spotifyWebClient.Player.GetAvailableDevices();
+                return devices.Devices.First(device => device.Type.ToLower() == "computer");
+            }
+            catch (APIException e)
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -264,12 +297,20 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> Pause()
         {
-            var result =
-                await _spotifyWebClient.PausePlaybackAsync(_playbackContext?.Device?.Id);
-            if (result.HasError())
-                return ActionResult.Error;
+            try
+            {
+                var result = await _spotifyWebClient.Player.PausePlayback();
+                if (!result)
+                    return ActionResult.Error;
 
-            if (_playbackContext != null) _playbackContext.IsPlaying = false;
+                if (_playbackContext != null) _playbackContext.IsPlaying = false;
+
+            }
+            catch (APIException e)
+            {
+                Trace.Write(e);
+                return ActionResult.Error;
+            }
 
             return ActionResult.Success;
         }
