@@ -69,7 +69,8 @@ namespace Spotitoast.Spotify.Client
                 Trace.WriteLine("Checking for playing track");
                 var trackResponse = await _spotifyWebClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
 
-                if (!trackResponse.IsPlaying)
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (trackResponse == null || !trackResponse.IsPlaying)
                 {
                     return ActionResult.NoTrackPlayed;
                 }
