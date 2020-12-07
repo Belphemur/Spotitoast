@@ -34,7 +34,7 @@ namespace Spotitoast.Linux
 
         private static async Task RunServer(int port)
         {
-            Console.CancelKeyPress += async (sender, eventArgs) =>
+            Console.CancelKeyPress += async (_, _) =>
             {
                 await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync();
                 Environment.Exit(0);
