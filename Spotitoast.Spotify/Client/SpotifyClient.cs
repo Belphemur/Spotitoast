@@ -19,7 +19,6 @@ namespace Spotitoast.Spotify.Client
     public class SpotifyClient
     {
         private SpotifyWebClient _spotifyWebClient;
-        private readonly SpotifyWebClientConfiguration _webConfiguration;
 
         private CurrentlyPlaying _playbackContext;
 
@@ -42,10 +41,9 @@ namespace Spotitoast.Spotify.Client
                 _spotifyWebClient = new SpotifyWebClient(authConfiguration.LastToken.AccessToken);
             }
 
-            _webConfiguration = webConfiguration;
             _authClient = new SpotifyAuth(authConfiguration, jobScheduler);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
-            jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this, TimeSpan.FromSeconds(_webConfiguration.CheckCurrentlyPlayedSeconds)));
+            jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this, TimeSpan.FromSeconds(webConfiguration.CheckCurrentlyPlayedSeconds)));
         }
 
         private void AuthOnTokenUpdated(object sender, SpotifyAuth.TokenUpdatedEventArg e)

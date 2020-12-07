@@ -77,7 +77,6 @@ namespace Spotitoast.Spotify.Client.Auth
                 return RequestNewToken();
             }
 
-
             return RefreshToken();
         }
 
