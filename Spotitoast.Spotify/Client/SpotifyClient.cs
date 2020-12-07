@@ -319,6 +319,10 @@ namespace Spotitoast.Spotify.Client
 
                 if (_playbackContext != null) _playbackContext.IsPlaying = false;
             }
+            catch (APIException e) when(e.Message.Contains("No active device found"))
+            {
+                _playbackContext = null;
+            }
             catch (APIException e)
             {
                 Trace.Write(e);
