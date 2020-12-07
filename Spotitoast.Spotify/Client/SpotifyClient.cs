@@ -65,6 +65,12 @@ namespace Spotitoast.Spotify.Client
             try
             {
                 Trace.WriteLine("Checking for playing track");
+                //Waiting for client to be created like when doing the first authentication
+                if (_spotifyWebClient == null)
+                {
+                    return ActionResult.NoTrackPlayed;
+                }
+
                 var trackResponse = await _spotifyWebClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
 
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
@@ -227,7 +233,6 @@ namespace Spotitoast.Spotify.Client
                 {
                     return ActionResult.Error;
                 }
-
             }
             catch (APIException e)
             {
@@ -259,7 +264,6 @@ namespace Spotitoast.Spotify.Client
                 {
                     DeviceId = deviceId
                 });
-
             }
             catch (APIException e) when (e.Response?.StatusCode == HttpStatusCode.NotFound)
             {
@@ -308,7 +312,6 @@ namespace Spotitoast.Spotify.Client
                     return ActionResult.Error;
 
                 if (_playbackContext != null) _playbackContext.IsPlaying = false;
-
             }
             catch (APIException e)
             {
