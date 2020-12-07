@@ -24,7 +24,6 @@ namespace Spotitoast.Spotify.Client.Auth
         private readonly SpotifyAuthConfiguration _config;
         private readonly IOAuthClient _tokenSwapAuth;
         private bool _gettingToken;
-        private readonly EmbedIOAuthServer _server;
 
         /// <summary>
         /// Triggered when the Access token is updated
@@ -35,13 +34,6 @@ namespace Spotitoast.Spotify.Client.Auth
         {
             _config = configuration;
             _tokenSwapAuth = new OAuthClient();
-            _server = new EmbedIOAuthServer(_config.ListenUri, _config.ListenPort);
-            ConfigureAuthServer(jobScheduler);
-        }
-
-        private void ConfigureAuthServer(IJobScheduler jobScheduler)
-        {
-            _server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
             jobScheduler.ScheduleJob(new RefreshTokenRecurringJob(this, _config));
         }
 
@@ -85,11 +77,12 @@ namespace Spotitoast.Spotify.Client.Auth
             if (_gettingToken) return;
 
             _gettingToken = true;
+            var server = new EmbedIOAuthServer(_config.ListenUri, _config.ListenPort);
+            server.AuthorizationCodeReceived += (o, response) => OnAuthorizationCodeReceived(response, server);
 
-            await _server.Start();
+            await server.Start();
 
-
-            var request = new LoginRequest(_server.BaseUri, _config.ClientId, LoginRequest.ResponseType.Code)
+            var request = new LoginRequest(server.BaseUri, _config.ClientId, LoginRequest.ResponseType.Code)
             {
                 Scope = _config.AuthScopes
             };
@@ -105,7 +98,7 @@ namespace Spotitoast.Spotify.Client.Auth
             }
         }
 
-        private async Task OnAuthorizationCodeReceived(object arg1, AuthorizationCodeResponse response)
+        private async Task OnAuthorizationCodeReceived(AuthorizationCodeResponse response, IAuthServer server)
         {
             var oauth = new OAuthClient();
 
@@ -113,9 +106,12 @@ namespace Spotitoast.Spotify.Client.Auth
             var tokenResponse = await oauth.RequestToken(tokenRequest);
             _config.LastToken = new SpotifyAuthConfiguration.Token(tokenResponse.AccessToken, tokenResponse.ExpiresIn, tokenResponse.RefreshToken);
 
+            await server.Stop();
+
             _gettingToken = false;
-            await _server.Stop();
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
+
+            server.Dispose();
         }
     }
 }
