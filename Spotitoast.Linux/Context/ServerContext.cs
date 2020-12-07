@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Notify.Linux.Client;
 using Spotitoast.Linux.Notification;
@@ -23,14 +24,14 @@ namespace Spotitoast.Linux.Context
             _notificationClient = notificationClient;
         }
 
-        public async Task EventLoopStart(int port)
+        public async Task EventLoopStartAsync(int port, CancellationToken token)
         {
             _notificationHandler.RegisterNotifications();
             var bytes = new Byte[256];
-            String cmd = null;
+            String cmd;
             var tcpListener = new TcpListener(IPAddress.Loopback, port);
             tcpListener.Start();
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 using var client = await tcpListener.AcceptTcpClientAsync();
                 var stream = client.GetStream();
@@ -39,16 +40,16 @@ namespace Spotitoast.Linux.Context
                 int i;
 
                 // Loop to receive all the data sent by the client.
-                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                while ((i = await stream.ReadAsync(bytes, 0, bytes.Length, token)) != 0)
                 {
                     // Translate data bytes to a ASCII string.
                     cmd = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
 
                     var commandResult = await HandleCommand(cmd);
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes(commandResult.ToString());
+                    var msg = System.Text.Encoding.ASCII.GetBytes(commandResult.ToString());
 
                     // Send back a response.
-                    stream.Write(msg, 0, msg.Length);
+                    await stream.WriteAsync(msg, 0, msg.Length, token);
                     if (commandResult == ActionResult.ExitApplication)
                     {
                         return;

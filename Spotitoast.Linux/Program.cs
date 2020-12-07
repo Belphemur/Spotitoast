@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Scheduler;
@@ -23,6 +24,7 @@ namespace Spotitoast.Linux
             }
 
             await SendClientCommand(args, port);
+            Environment.Exit(0);
         }
 
         private static async Task SendClientCommand(string[] args, int port)
@@ -34,15 +36,19 @@ namespace Spotitoast.Linux
 
         private static async Task RunServer(int port)
         {
-            Console.CancelKeyPress += async (_, eventArgs) =>
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, eventArgs) =>
             {
                 eventArgs.Cancel = true;
-                await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync();
-                Environment.Exit(0);
+                cts.Cancel();
             };
+            AssemblyLoadContext.Default.Unloading += _ => cts.Cancel();
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => { cts.Cancel(); };
+
             await Console.Out.WriteLineAsync("Running as server.");
-            await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStart(port);
-            await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync();
+            await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStartAsync(port, cts.Token);
+            await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync(cts.Token);
+            Environment.Exit(0);
         }
     }
 }
