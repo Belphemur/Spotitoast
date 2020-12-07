@@ -7,7 +7,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Notify.Linux\Notify.Linux.csproj" />
-        <ProjectReference Include="..\SoundSwitch.InterProcess.Communication\SoundSwitch.InterProcess.Communication.csproj" />
         <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
         <ProjectReference Include="..\Spotitoast.Logic\Spotitoast.Logic.csproj" />
         <ProjectReference Include="..\Spotitoast.Spotify\Spotitoast.Spotify.csproj" />
