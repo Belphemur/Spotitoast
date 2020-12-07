@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Job.Scheduler.Scheduler;
 using SpotifyAPI.Web;
-using SpotifyAPI.Web.Models;
 using Spotitoast.Spotify.Client.Auth;
 using Spotitoast.Spotify.Client.Job;
 using Spotitoast.Spotify.Configuration;
@@ -17,7 +15,7 @@ namespace Spotitoast.Spotify.Client
 {
     public class SpotifyClient
     {
-        private readonly SpotifyWebAPI _spotifyWebClient;
+        private readonly SpotifyClient _spotifyWebClient;
         private readonly SpotifyWebClientConfiguration _webConfiguration;
 
         private PlaybackContext _playbackContext;

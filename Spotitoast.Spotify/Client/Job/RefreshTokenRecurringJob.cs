@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Job.Scheduler.Job;
 using Job.Scheduler.Job.Exception;
-using SpotifyAPI.Web.Models;
 using Spotitoast.Spotify.Client.Auth;
 using Spotitoast.Spotify.Configuration;
 
@@ -30,9 +29,9 @@ namespace Spotitoast.Spotify.Client.Job
             
         }
 
-        private void SetDelayFromToken([CanBeNull]Token token)
+        private void SetDelayFromToken([CanBeNull]SpotifyAuthConfiguration.Token token)
         {
-            Delay = TimeSpan.FromSeconds(token?.ExpiresIn ?? 3600) - TimeSpan.FromSeconds(60);
+            Delay = token?.Expire ?? TimeSpan.FromSeconds(3600) - TimeSpan.FromSeconds(60);
             Trace.WriteLine($"Update delay of Refresh job to {Delay}");
         }
 

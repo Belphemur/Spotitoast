@@ -1,19 +1,29 @@
-﻿using JetBrains.Annotations;
-using SpotifyAPI.Web.Enums;
-using SpotifyAPI.Web.Models;
+﻿using System;
+using JetBrains.Annotations;
+using SpotifyAPI.Web;
 using Spotitoast.Configuration;
 
 namespace Spotitoast.Spotify.Configuration
 {
     public class SpotifyAuthConfiguration : BaseConfiguration
     {
+        public record Token
+        {
+            public Token(string accessToken, int expireInSeconds, string refreshToken) => (AccessToken, Expire, RefreshToken) = (accessToken, TimeSpan.FromSeconds(expireInSeconds), refreshToken);
+
+            public string AccessToken { get; init; }
+            public TimeSpan Expire { get; init; }
+            public string RefreshToken { get; init; }
+        }
 
         private Token _lastToken = null;
+
         /// <summary>
         /// OAuth Token
         /// </summary>
         [CanBeNull]
-        public Token LastToken {
+        public Token LastToken
+        {
             get => _lastToken;
             set
             {
@@ -22,31 +32,15 @@ namespace Spotitoast.Spotify.Configuration
             }
         }
 
-        public string ExchangeUrl => "https://www.aaflalo.me/spotitoast/";
-        public Scope Scopes => Scope.UserReadEmail | Scope.UserLibraryModify | Scope.UserLibraryRead | Scope.UserModifyPlaybackState | Scope.UserReadPlaybackState;
-        public string InnerServerUrl => "http://localhost:4002";
-        /// <summary>
-        /// Update the access token data
-        /// </summary>
-        /// <param name="accessToken"></param>
-        public void UpdateAccessToken(Token accessToken)
-        {
-            if (LastToken == null)
-            {
-                _lastToken = accessToken;
-            }
-            else
-            {
-                _lastToken.AccessToken = accessToken.AccessToken;
-                _lastToken.ExpiresIn = accessToken.ExpiresIn;
-                _lastToken.CreateDate = accessToken.CreateDate;
-            }
-            PropertyChanged(nameof(LastToken));
-        }
+        public Uri ExchangeUrl => new("https://www.aaflalo.me/spotitoast/");
+        public string[] AuthScopes => new[] {Scopes.UserReadEmail, Scopes.UserLibraryModify, Scopes.UserLibraryRead, Scopes.UserModifyPlaybackState, Scopes.UserReadPlaybackState};
+        public string ClientId => "fc945fa1296945d09628cff8e2159941";
+
+        public Uri ListenUri => new($"http://localhost:{ListenPort}/callback");
+        public int ListenPort => 4002;
 
         public override void Migrate()
         {
-           
         }
     }
 }

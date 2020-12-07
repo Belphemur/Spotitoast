@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Job.Scheduler.Scheduler;
+using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
-using SpotifyAPI.Web.Models;
 using Spotitoast.Spotify.Client.Job;
 using Spotitoast.Spotify.Configuration;
 
@@ -14,24 +13,18 @@ namespace Spotitoast.Spotify.Client.Auth
     {
         internal class TokenUpdatedEventArg : EventArgs
         {
-            public TokenUpdatedEventArg(Token newToken)
+            public TokenUpdatedEventArg(SpotifyAuthConfiguration.Token newToken)
             {
                 NewToken = newToken;
             }
 
-            public Token NewToken { get; }
+            public SpotifyAuthConfiguration.Token NewToken { get; }
         }
 
         private readonly SpotifyAuthConfiguration _config;
-        private readonly IJobScheduler            _jobScheduler;
-        private readonly TokenSwapAuth            _tokenSwapAuth;
-        private          bool                     _gettingToken = false;
-
-        /// <summary>
-        /// Currently used token
-        /// </summary>
-        [CanBeNull]
-        public Token AuthToken => _config.LastToken;
+        private readonly IOAuthClient _tokenSwapAuth;
+        private bool _gettingToken;
+        private readonly EmbedIOAuthServer _server;
 
         /// <summary>
         /// Triggered when the Access token is updated
@@ -40,41 +33,29 @@ namespace Spotitoast.Spotify.Client.Auth
 
         public SpotifyAuth(SpotifyAuthConfiguration configuration, IJobScheduler jobScheduler)
         {
-            _config            = configuration;
-            _jobScheduler = jobScheduler;
-            _tokenSwapAuth = new TokenSwapAuth(
-                exchangeServerUri: _config.ExchangeUrl,
-                serverUri: _config.InnerServerUrl,
-                scope: _config.Scopes
-            )
-            {
-                TimeAccessExpiry = false
-            };
-            ConfigureAuthClient();
+            _config = configuration;
+            _tokenSwapAuth = new OAuthClient();
+            _server = new EmbedIOAuthServer(_config.ListenUri, _config.ListenPort);
+            ConfigureAuthServer(jobScheduler);
         }
 
-        private void ConfigureAuthClient()
+        private void ConfigureAuthServer(IJobScheduler jobScheduler)
         {
-            _tokenSwapAuth.AuthReceived += async (sender, response) =>
-            {
-                _config.LastToken = await _tokenSwapAuth.ExchangeCodeAsync(response.Code);
-
-                TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
-                _tokenSwapAuth.Stop();
-                _gettingToken = false;
-            };
-            _jobScheduler.ScheduleJob(new RefreshTokenRecurringJob(this, _config));
+            _server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
+            jobScheduler.ScheduleJob(new RefreshTokenRecurringJob(this, _config));
         }
+
         internal async Task RefreshToken()
         {
-            var token = await _tokenSwapAuth.RefreshAuthAsync(_config.LastToken?.RefreshToken);
-            if (token == null)
+            if (_config.LastToken == null)
             {
-                RequestNewToken();
+                await RequestNewToken();
                 return;
             }
 
-            _config.UpdateAccessToken(token);
+            var token = await _tokenSwapAuth.RequestToken(new TokenSwapRefreshRequest(_config.ExchangeUrl, _config.LastToken.RefreshToken));
+
+            _config.LastToken = _config.LastToken with {AccessToken = token.AccessToken, Expire = TimeSpan.FromSeconds(token.ExpiresIn)};
 
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
             Trace.Write("Token Refreshed");
@@ -88,36 +69,54 @@ namespace Spotitoast.Spotify.Client.Auth
         {
             if (forceRenewal)
             {
-                RequestNewToken();
-                return Task.CompletedTask;
+                return RequestNewToken();
             }
 
             if (_config.LastToken == null)
             {
-                RequestNewToken();
-                return Task.CompletedTask;
+                return RequestNewToken();
             }
 
-            if (_config.LastToken.HasError())
-            {
-                RequestNewToken();
-                return Task.CompletedTask;
-            }
 
             return RefreshToken();
         }
 
-        private void RequestNewToken()
+        private async Task RequestNewToken()
         {
-            lock (this)
+            if (_gettingToken) return;
+
+            _gettingToken = true;
+
+            await _server.Start();
+
+
+            var request = new LoginRequest(_server.BaseUri, _config.ClientId, LoginRequest.ResponseType.Code)
             {
-                if (_gettingToken) return;
+                Scope = _config.AuthScopes
+            };
 
-                _gettingToken = true;
-
-                _tokenSwapAuth.Start();
-                _tokenSwapAuth.OpenBrowser();
+            var uri = request.ToUri();
+            try
+            {
+                BrowserUtil.Open(uri);
             }
+            catch (Exception)
+            {
+                Trace.WriteLine($"Unable to open URL, manually open: {uri}");
+            }
+        }
+
+        private async Task OnAuthorizationCodeReceived(object arg1, AuthorizationCodeResponse response)
+        {
+            var oauth = new OAuthClient();
+
+            var tokenRequest = new TokenSwapTokenRequest(_config.ExchangeUrl, response.Code);
+            var tokenResponse = await oauth.RequestToken(tokenRequest);
+            _config.LastToken = new SpotifyAuthConfiguration.Token(tokenResponse.AccessToken, tokenResponse.ExpiresIn, tokenResponse.RefreshToken);
+
+            _gettingToken = false;
+            await _server.Stop();
+            TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
         }
     }
 }
