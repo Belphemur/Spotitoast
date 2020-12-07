@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SpotifyAPI.Web.Models;
+using SpotifyAPI.Web;
 using Spotitoast.Logic.Framework.Extensions;
 using Image = System.Drawing.Image;
 
