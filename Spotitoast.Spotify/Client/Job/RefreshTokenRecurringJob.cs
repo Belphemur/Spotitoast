@@ -31,7 +31,7 @@ namespace Spotitoast.Spotify.Client.Job
 
         private void SetDelayFromToken([CanBeNull]SpotifyAuthConfiguration.Token token)
         {
-            Delay = token?.Expire ?? TimeSpan.FromSeconds(3600) - TimeSpan.FromSeconds(60);
+            Delay = (token?.Expire ?? TimeSpan.FromSeconds(3600)) - TimeSpan.FromSeconds(60);
             Trace.WriteLine($"Update delay of Refresh job to {Delay}");
         }
 
