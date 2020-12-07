@@ -28,32 +28,47 @@ namespace Spotitoast.Linux.Context
         {
             _notificationHandler.RegisterNotifications();
             var bytes = new Byte[256];
-            String cmd;
             var tcpListener = new TcpListener(IPAddress.Loopback, port);
             tcpListener.Start();
+            token.Register(() => tcpListener.Stop());
+
             while (!token.IsCancellationRequested)
             {
-                using var client = await tcpListener.AcceptTcpClientAsync();
-                var stream = client.GetStream();
-
-
-                int i;
-
-                // Loop to receive all the data sent by the client.
-                while ((i = await stream.ReadAsync(bytes, 0, bytes.Length, token)) != 0)
+                try
                 {
-                    // Translate data bytes to a ASCII string.
-                    cmd = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                    using var client = await tcpListener.AcceptTcpClientAsync();
 
-                    var commandResult = await HandleCommand(cmd);
-                    var msg = System.Text.Encoding.ASCII.GetBytes(commandResult.ToString());
+                    var stream = client.GetStream();
+                    int i;
 
-                    // Send back a response.
-                    await stream.WriteAsync(msg, 0, msg.Length, token);
-                    if (commandResult == ActionResult.ExitApplication)
+                    // Loop to receive all the data sent by the client.
+                    while ((i = await stream.ReadAsync(bytes.AsMemory(0, bytes.Length), token)) != 0)
                     {
-                        return;
+                        // Translate data bytes to a ASCII string.
+                        var cmd = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+
+                        var commandResult = await HandleCommand(cmd);
+                        var msg = System.Text.Encoding.ASCII.GetBytes(commandResult.ToString());
+
+                        // Send back a response.
+                        await stream.WriteAsync(msg.AsMemory(0, msg.Length), token);
+                        if (commandResult == ActionResult.ExitApplication)
+                        {
+                            return;
+                        }
                     }
+                }
+                catch (SocketException)
+                {
+                    // Either tcpListener.Start wasn't called (a bug!)
+                    // or the CancellationToken was cancelled before
+                    // we started accepting (giving an InvalidOperationException),
+                    // or the CancellationToken was cancelled after
+                    // we started accepting (giving an ObjectDisposedException).
+                    //
+                    // In the latter two cases we should surface the cancellation
+                    // exception, or otherwise rethrow the original exception.
+                    return;
                 }
             }
         }
