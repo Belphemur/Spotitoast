@@ -55,7 +55,7 @@ namespace Spotitoast.Spotify.Client.Auth
 
             var token = await _tokenSwapAuth.RequestToken(new TokenSwapRefreshRequest(_config.ExchangeUrl, _config.LastToken.RefreshToken));
 
-            _config.LastToken = _config.LastToken with {AccessToken = token.AccessToken, Expire = TimeSpan.FromSeconds(token.ExpiresIn)};
+            _config.LastToken = _config.LastToken with {AccessToken = token.AccessToken, ExpirationDate = DateTime.UtcNow + TimeSpan.FromSeconds(token.ExpiresIn)};
 
             TokenUpdated?.Invoke(this, new TokenUpdatedEventArg(_config.LastToken));
             Trace.Write("Token Refreshed");

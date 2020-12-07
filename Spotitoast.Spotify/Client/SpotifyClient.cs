@@ -29,6 +29,7 @@ namespace Spotitoast.Spotify.Client
         private readonly ISubject<FullTrack> _trackLiked = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackDisliked = new Subject<FullTrack>();
         private SpotifyAuth _authClient;
+        private SpotifyAuthConfiguration _spotifyAuthConfiguration;
 
         public IObservable<FullTrack> PlayedTrack => _playedTrackSubject.AsObservable();
         public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
@@ -36,12 +37,13 @@ namespace Spotitoast.Spotify.Client
 
         public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration, IJobScheduler jobScheduler)
         {
-            if (authConfiguration.LastToken != null)
+            _spotifyAuthConfiguration = authConfiguration;
+            if (_spotifyAuthConfiguration.LastToken != null)
             {
-                _spotifyWebClient = new SpotifyWebClient(authConfiguration.LastToken.AccessToken);
+                _spotifyWebClient = new SpotifyWebClient(_spotifyAuthConfiguration.LastToken.AccessToken);
             }
 
-            _authClient = new SpotifyAuth(authConfiguration, jobScheduler);
+            _authClient = new SpotifyAuth(_spotifyAuthConfiguration, jobScheduler);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
             jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this, TimeSpan.FromSeconds(webConfiguration.CheckCurrentlyPlayedSeconds)));
         }
@@ -53,6 +55,10 @@ namespace Spotitoast.Spotify.Client
 
         internal async Task CheckCurrentPlayedTrackWithAutoRefresh()
         {
+            if (_spotifyAuthConfiguration.LastToken?.IsExpired() ?? false)
+            {
+                await _authClient.RefreshAccessToken();
+            }
             var result = await CheckCurrentPlayedTrack();
             if (result == ActionResult.Error)
             {
