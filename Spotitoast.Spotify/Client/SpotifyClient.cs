@@ -69,6 +69,11 @@ namespace Spotitoast.Spotify.Client
                 Trace.WriteLine("Checking for playing track");
                 var trackResponse = await _spotifyWebClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
 
+                if (!trackResponse.IsPlaying)
+                {
+                    return ActionResult.NoTrackPlayed;
+                }
+
                 if (!(trackResponse.Item is FullTrack fullTrack))
                 {
                     return ActionResult.Error;
