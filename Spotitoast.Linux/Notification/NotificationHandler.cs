@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using Notify.Linux.Client;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Logic.Business.Command;
@@ -85,26 +86,28 @@ namespace Spotitoast.Linux.Notification
                         Key = ActionFactory.PlayerAction.Like.ToString(),
                         Label = " 💖 Like",
                         OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Like)
-                    },
+                    }
+                };
+            }
+            else
+            {
+                notificationData.Actions = new[]
+                {
                     new NotificationData.Action
                     {
-                        Key = ActionFactory.PlayerAction.Skip.ToString(),
-                        Label = "⏭️Skip",
-                        OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
+                        Key = ActionFactory.PlayerAction.Dislike.ToString(),
+                        Label = "💔 Dislike",
+                        OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Dislike)
                     },
                 };
-                return;
             }
 
-            notificationData.Actions = new[]
+            notificationData.Actions = notificationData.Actions.Append(new NotificationData.Action
             {
-                new NotificationData.Action
-                {
-                    Key = ActionFactory.PlayerAction.Dislike.ToString(),
-                    Label = "💔 Dislike",
-                    OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Dislike)
-                },
-            };
+                Key = ActionFactory.PlayerAction.Skip.ToString(),
+                Label = "⏭️Skip",
+                OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
+            }).ToArray();
         }
     }
 }
