@@ -260,6 +260,8 @@ namespace Spotitoast.Spotify.Client
             if (result == ActionResult.Error)
                 return result;
 
+            await Task.Delay(TimeSpan.FromMilliseconds(250));
+
             return await CheckCurrentPlayedTrack(true);
         }
 
