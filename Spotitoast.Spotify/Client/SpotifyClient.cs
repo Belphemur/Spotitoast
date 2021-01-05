@@ -20,7 +20,8 @@ namespace Spotitoast.Spotify.Client
     {
         private SpotifyWebClient _spotifyWebClient;
 
-        private CurrentlyPlaying _playbackContext;
+        [CanBeNull]
+        private CurrentlyPlayingContext _playbackContext;
 
         public bool IsPlaying => _playbackContext?.IsPlaying ?? false;
 
@@ -77,7 +78,7 @@ namespace Spotitoast.Spotify.Client
                     return ActionResult.NoTrackPlayed;
                 }
 
-                var trackResponse = await _spotifyWebClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+                var trackResponse = await _spotifyWebClient.Player.GetCurrentPlayback(new PlayerCurrentPlaybackRequest());
 
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (trackResponse == null || !trackResponse.IsPlaying)
@@ -256,7 +257,7 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> Resume()
         {
-            var result = await ResumeInternal();
+            var result = await ResumeInternal(_playbackContext?.Device.Id);
             if (result == ActionResult.Error)
                 return result;
 
@@ -269,7 +270,7 @@ namespace Spotitoast.Spotify.Client
         {
             try
             {
-                var result = await _spotifyWebClient.Player.ResumePlayback(new PlayerResumePlaybackRequest
+                await _spotifyWebClient.Player.ResumePlayback(new PlayerResumePlaybackRequest
                 {
                     DeviceId = deviceId
                 });
