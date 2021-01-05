@@ -18,32 +18,32 @@ namespace Spotitoast.Spotify.Client
 {
     public class SpotifyClient
     {
-        private SpotifyWebClient _spotifyWebClient;
+        private readonly SpotifyWebClient _spotifyWebClient;
 
-        [CanBeNull]
-        private CurrentlyPlayingContext _playbackContext;
-
-        public bool IsPlaying => _playbackContext?.IsPlaying ?? false;
+        [CanBeNull] private CurrentlyPlayingContext _playbackContext;
 
 
         private readonly ISubject<FullTrack> _playedTrackSubject = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackLiked = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackDisliked = new Subject<FullTrack>();
-        private SpotifyAuth _authClient;
-        private SpotifyAuthConfiguration _spotifyAuthConfiguration;
+        private readonly SpotifyAuth _authClient;
+        private readonly SpotifyAuthConfiguration _spotifyAuthConfiguration;
+        private readonly TokenAuthenticator _tokenAuthenticator = new("", "Bearer");
 
         public IObservable<FullTrack> PlayedTrack => _playedTrackSubject.AsObservable();
         public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
         public IObservable<FullTrack> TrackDisliked => _trackDisliked.AsObservable();
+        public bool IsPlaying => _playbackContext?.IsPlaying ?? false;
 
         public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration, IJobScheduler jobScheduler)
         {
             _spotifyAuthConfiguration = authConfiguration;
             if (_spotifyAuthConfiguration.LastToken != null)
             {
-                _spotifyWebClient = new SpotifyWebClient(_spotifyAuthConfiguration.LastToken.AccessToken);
+                _tokenAuthenticator.Token = _spotifyAuthConfiguration.LastToken.AccessToken;
             }
 
+            _spotifyWebClient = new SpotifyWebClient(SpotifyClientConfig.CreateDefault().WithAuthenticator(_tokenAuthenticator));
             _authClient = new SpotifyAuth(_spotifyAuthConfiguration, jobScheduler);
             _authClient.TokenUpdated += AuthOnTokenUpdated;
             jobScheduler.ScheduleJob(new CheckCurrentlyPlayingJob(this, TimeSpan.FromSeconds(webConfiguration.CheckCurrentlyPlayedSeconds)));
@@ -51,7 +51,7 @@ namespace Spotitoast.Spotify.Client
 
         private void AuthOnTokenUpdated(object sender, SpotifyAuth.TokenUpdatedEventArg e)
         {
-            _spotifyWebClient = new SpotifyWebClient(e.NewToken.AccessToken);
+            _tokenAuthenticator.Token = e.NewToken.AccessToken;
         }
 
         internal async Task CheckCurrentPlayedTrackWithAutoRefresh()
@@ -60,6 +60,7 @@ namespace Spotitoast.Spotify.Client
             {
                 await _authClient.RefreshAccessToken();
             }
+
             var result = await CheckCurrentPlayedTrack();
             if (result == ActionResult.Error)
             {
@@ -72,11 +73,6 @@ namespace Spotitoast.Spotify.Client
             try
             {
                 Trace.WriteLine("Checking for playing track");
-                //Waiting for client to be created like when doing the first authentication
-                if (_spotifyWebClient == null)
-                {
-                    return ActionResult.NoTrackPlayed;
-                }
 
                 var trackResponse = await _spotifyWebClient.Player.GetCurrentPlayback(new PlayerCurrentPlaybackRequest());
 
@@ -323,7 +319,7 @@ namespace Spotitoast.Spotify.Client
 
                 if (_playbackContext != null) _playbackContext.IsPlaying = false;
             }
-            catch (APIException e) when(e.Message.Contains("No active device found"))
+            catch (APIException e) when (e.Message.Contains("No active device found"))
             {
                 _playbackContext = null;
             }
