@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using Spotitoast.Banner.Client;
 using Spotitoast.Banner.Model;
@@ -36,7 +35,7 @@ namespace Spotitoast.Context
             spotifyClient.TrackLiked.Subscribe(async trackTask =>
             {
                 var track = await trackTask;
-                _trayIcon.BalloonTipTitle = "Spotitoast liked 💖";
+                _trayIcon.BalloonTipTitle = @"Spotitoast liked 💖";
                 _trayIcon.BalloonTipText  = $@"{track.Name} - {track.ArtistsDisplay}";
                 _trayIcon.ShowBalloonTip(1000);
             });
@@ -44,7 +43,7 @@ namespace Spotitoast.Context
             spotifyClient.TrackDisliked.Subscribe(async trackTask =>
             {
                 var track = await trackTask;
-                _trayIcon.BalloonTipTitle = "Spotitoast disliked 🖤";
+                _trayIcon.BalloonTipTitle = @"Spotitoast disliked 🖤";
                 _trayIcon.BalloonTipText  = $@"{track.Name} - {track.ArtistsDisplay}";
                 _trayIcon.ShowBalloonTip(1000);
             });
@@ -100,8 +99,8 @@ namespace Spotitoast.Context
                 {
                     Items = {{"Exit", null, Exit}}
                 },
-                BalloonTipTitle = "Spotitoast",
-                Text            = "Spotitoast",
+                BalloonTipTitle = @"Spotitoast",
+                Text            = @"Spotitoast",
                 Visible         = true
             };
             return trayIcon;
