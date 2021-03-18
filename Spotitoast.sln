@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notify.Linux", "Notify.Linu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Job.Scheduler", "Job.Scheduler\Job.Scheduler.csproj", "{687D6341-1A49-4C2B-A55D-C1368BA8470F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Job.Scheduler.Tests", "Job.Scheduler.Tests\Job.Scheduler.Tests.csproj", "{55E570A2-34D3-4451-A8D2-CC36DC8D4123}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{687D6341-1A49-4C2B-A55D-C1368BA8470F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{687D6341-1A49-4C2B-A55D-C1368BA8470F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{687D6341-1A49-4C2B-A55D-C1368BA8470F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55E570A2-34D3-4451-A8D2-CC36DC8D4123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55E570A2-34D3-4451-A8D2-CC36DC8D4123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55E570A2-34D3-4451-A8D2-CC36DC8D4123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55E570A2-34D3-4451-A8D2-CC36DC8D4123}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
