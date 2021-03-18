@@ -6,9 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="GtkSharp" Version="3.22.25.128" />
+      <PackageReference Include="GtkSharp" Version="3.24.24.4" />
       <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
-      <PackageReference Include="System.Drawing.Common" Version="5.0.1" />
+      <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
       <PackageReference Include="Tmds.DBus" Version="0.9.1" />
     </ItemGroup>
 
