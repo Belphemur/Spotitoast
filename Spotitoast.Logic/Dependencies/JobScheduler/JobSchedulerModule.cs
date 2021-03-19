@@ -9,7 +9,7 @@ namespace Spotitoast.Logic.Dependencies.JobScheduler
         public override void Load()
         {
             Bind<IJobScheduler>().To<Job.Scheduler.Scheduler.JobScheduler>().InSingletonScope();
-            Bind<JobRunnerBuilder>().ToSelf().InSingletonScope();
+            Bind<IJobRunnerBuilder>().To<JobRunnerBuilder>().InSingletonScope();
         }
     }
 }
