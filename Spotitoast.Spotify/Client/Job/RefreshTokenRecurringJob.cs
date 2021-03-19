@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Job.Scheduler.Job;
+using Job.Scheduler.Job.Action;
 using Job.Scheduler.Job.Exception;
 using Spotitoast.Spotify.Client.Auth;
 using Spotitoast.Spotify.Configuration;
@@ -35,15 +36,18 @@ namespace Spotitoast.Spotify.Client.Job
             Trace.WriteLine($"Update delay of Refresh job to {Delay}");
         }
 
+        public IRetryAction FailRule { get; } = new AlwaysRetry();
+
         public Task ExecuteAsync(CancellationToken cancellationToken)
         {
             return _auth.RefreshToken();
         }
 
-        public Task<bool> OnFailure(JobException exception)
+        public Task OnFailure(JobException exception)
         {
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
+        
 
         public TimeSpan Delay { get; private set; }
     }

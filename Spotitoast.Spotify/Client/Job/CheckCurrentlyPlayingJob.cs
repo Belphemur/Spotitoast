@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Job;
+using Job.Scheduler.Job.Action;
 using Job.Scheduler.Job.Exception;
 
 namespace Spotitoast.Spotify.Client.Job
@@ -16,6 +17,8 @@ namespace Spotitoast.Spotify.Client.Job
             Delay = delay;
         }
 
+        public IRetryAction FailRule { get; } = new AlwaysRetry();
+
         public Task ExecuteAsync(CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -23,9 +26,10 @@ namespace Spotitoast.Spotify.Client.Job
 
             return _client.CheckCurrentPlayedTrackWithAutoRefresh();
         }
-        public Task<bool> OnFailure(JobException exception)
+
+        public Task OnFailure(JobException exception)
         {
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
 
         public TimeSpan Delay { get; }
