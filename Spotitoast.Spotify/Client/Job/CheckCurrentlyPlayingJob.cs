@@ -18,6 +18,7 @@ namespace Spotitoast.Spotify.Client.Job
         }
 
         public IRetryAction FailRule { get; } = new AlwaysRetry();
+        public TimeSpan? MaxRuntime { get; } = null;
 
         public Task ExecuteAsync(CancellationToken cancellationToken)
         {
