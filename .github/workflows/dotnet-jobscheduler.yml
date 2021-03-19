@@ -8,8 +8,7 @@ on:
       - 'Job.Scheduler/**'
       - 'Job.Scheduler.Tests/**'
   pull_request:
-    branches: 
-      - develop
+    branches: '**'
     paths:
       - 'Job.Scheduler/**'
       - 'Job.Scheduler.Tests/**'
