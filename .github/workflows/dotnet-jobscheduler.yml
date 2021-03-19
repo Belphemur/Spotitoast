@@ -1,0 +1,30 @@
+name: .NET JobScheduler
+
+on:
+  push:
+    branches: '**'
+    paths: "/Job.Scheduler*/**"
+  pull_request:
+    branches: '**'
+    paths: "/Job.Scheduler*/**"
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore Job.Scheduler/Job.Scheduler.csproj
+    - name: Build
+      run: dotnet build --no-restore Job.Scheduler/Job.Scheduler.csproj
+    - name: Test Restore
+      run: dotnet restore Job.Scheduler.Tests/Job.Scheduler.Tests.csproj
+    - name: Test Run
+      run: dotnet test --verbosity normal Job.Scheduler.Tests/Job.Scheduler.Tests.csproj
