@@ -3,10 +3,15 @@ name: .NET JobScheduler
 on:
   push:
     branches: '**'
-    paths: "/Job.Scheduler*/**"
+    paths: 
+      - 'Job.Scheduler/**'
+      - 'Job.Scheduler.Tests/**'
   pull_request:
     branches: '**'
-    paths: "/Job.Scheduler*/**"
+    paths:
+      - 'Job.Scheduler/**'
+      - 'Job.Scheduler.Tests/**'
+
 
 
 jobs:
