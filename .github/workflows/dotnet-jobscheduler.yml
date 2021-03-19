@@ -2,7 +2,8 @@ name: .NET JobScheduler
 
 on:
   push:
-    branches: '**'
+    branches: 
+      - develop
     paths: 
       - 'Job.Scheduler/**'
       - 'Job.Scheduler.Tests/**'
