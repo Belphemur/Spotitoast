@@ -25,11 +25,23 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
+    - uses: actions/cache@v2
+      with:
+        path: ~/.nuget/packages
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget
     - name: Restore dependencies
       run: dotnet restore Job.Scheduler/Job.Scheduler.csproj
     - name: Build
       run: dotnet build --no-restore Job.Scheduler/Job.Scheduler.csproj
-    - name: Test Restore
-      run: dotnet restore Job.Scheduler.Tests/Job.Scheduler.Tests.csproj
-    - name: Test Run
-      run: dotnet test --verbosity normal Job.Scheduler.Tests/Job.Scheduler.Tests.csproj
+    - name: Test with dotnet
+      run: dotnet test --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}" Job.Scheduler.Tests/Job.Scheduler.Tests.csproj
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: dotnet-results-${{ matrix.dotnet-version }}
+        path: TestResults-${{ matrix.dotnet-version }}
+      # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}
