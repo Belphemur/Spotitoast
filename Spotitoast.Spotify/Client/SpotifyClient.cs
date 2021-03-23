@@ -292,12 +292,13 @@ namespace Spotitoast.Spotify.Client
             return ActionResult.Success;
         }
 
+        [ItemCanBeNull]
         private async Task<Device> GetFirstDevice()
         {
             try
             {
                 var devices = await _spotifyWebClient.Player.GetAvailableDevices();
-                return devices.Devices.First(device => device.Type.ToLower() == "computer");
+                return devices.Devices.FirstOrDefault(device => device.Type.ToLower() == "computer");
             }
             catch (APIException)
             {
