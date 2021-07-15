@@ -7,9 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
-    <PackageReference Include="Job.Scheduler" Version="2.1.1" />
-    <PackageReference Include="SpotifyAPI.Web" Version="6.1.0" />
-    <PackageReference Include="SpotifyAPI.Web.Auth" Version="6.1.0" />
+    <PackageReference Include="Job.Scheduler" Version="2.2.2" />
+    <PackageReference Include="SpotifyAPI.Web" Version="6.2.0" />
+    <PackageReference Include="SpotifyAPI.Web.Auth" Version="6.2.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 
