@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using System.Reactive.Linq;
 using Notify.Linux.Client;
 using Spotitoast.Logic.Business.Action;
 using Spotitoast.Logic.Business.Command;
@@ -34,45 +35,50 @@ namespace Spotitoast.Linux.Notification
 
         private void RegisterLikedDisliked()
         {
-            _spotifyNotifier.TrackLiked.Subscribe(async trackTask =>
-            {
-                var track = await trackTask;
-                await _notificationClient.NotifyAsync(new SpotitoastNotification
-                {
-                    Summary = "You liked 💖",
-                    Body = $@"{track.Name} - {track.ArtistsDisplay}",
-                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
-                });
-            });
+            _spotifyNotifier.TrackLiked.Select(track => Observable.FromAsync(async () =>
+                            {
+                                await _notificationClient.NotifyAsync(new SpotitoastNotification
+                                {
+                                    Summary = "You liked 💖",
+                                    Body = $@"{track.Name} - {track.ArtistsDisplay}",
+                                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
+                                });
+                            }))
+                            .Concat()
+                            .Subscribe();
 
-            _spotifyNotifier.TrackDisliked.Subscribe(async trackTask =>
-            {
-                var track = await trackTask;
-                await _notificationClient.NotifyAsync(new SpotitoastNotification
-                {
-                    Summary = "You disliked 💔",
-                    Body = $@"{track.Name} - {track.ArtistsDisplay}",
-                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
-                });
-            });
+            _spotifyNotifier.TrackDisliked
+                            .Select(track => Observable.FromAsync(async () =>
+                            {
+                                await _notificationClient.NotifyAsync(new SpotitoastNotification
+                                {
+                                    Summary = "You disliked 💔",
+                                    Body = $@"{track.Name} - {track.ArtistsDisplay}",
+                                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
+                                });
+                            }))
+                            .Concat()
+                            .Subscribe();
         }
 
         private void RegisterTrackPlayed()
         {
-            _spotifyNotifier.TrackPlayed.Subscribe(async trackTask =>
-            {
-                var track = await trackTask;
-                var notificationData = new SpotitoastNotification
-                {
-                    Summary = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
-                    Body = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})\n{track.ArtistsDisplay}",
-                    Expiration = TimeSpan.FromSeconds(2),
-                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
-                };
-                SetActions(track, notificationData);
+            _spotifyNotifier.TrackPlayed
+                            .Select(track => Observable.FromAsync(async () =>
+                            {
+                                var notificationData = new SpotitoastNotification
+                                {
+                                    Summary = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
+                                    Body = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})\n{track.ArtistsDisplay}",
+                                    Expiration = TimeSpan.FromSeconds(2),
+                                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
+                                };
+                                SetActions(track, notificationData);
 
-                await _notificationClient.NotifyAsync(notificationData);
-            });
+                                await _notificationClient.NotifyAsync(notificationData);
+                            }))
+                            .Concat()
+                            .Subscribe();
         }
 
         private void SetActions(ITrack track, SpotitoastNotification notificationData)
@@ -103,11 +109,12 @@ namespace Spotitoast.Linux.Notification
             }
 
             notificationData.Actions = notificationData.Actions.Append(new NotificationData.Action
-            {
-                Key = ActionFactory.PlayerAction.Skip.ToString(),
-                Label = "⏭️Skip",
-                OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
-            }).ToArray();
+                                                       {
+                                                           Key = ActionFactory.PlayerAction.Skip.ToString(),
+                                                           Label = "⏭️Skip",
+                                                           OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
+                                                       })
+                                                       .ToArray();
         }
     }
 }
