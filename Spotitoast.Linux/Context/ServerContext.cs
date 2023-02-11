@@ -36,7 +36,7 @@ namespace Spotitoast.Linux.Context
             {
                 try
                 {
-                    using var client = await tcpListener.AcceptTcpClientAsync();
+                    using var client = await tcpListener.AcceptTcpClientAsync(token);
 
                     var stream = client.GetStream();
                     int i;
