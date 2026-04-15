@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Job.Scheduler.Scheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +11,13 @@ using Spotitoast.Linux.Server.Notification;
 using Spotitoast.Logic.Business.Player;
 using Spotitoast.Logic.Dependencies;
 using Spotitoast.Shared.Ipc;
+
+using var mutex = new Mutex(true, IpcConstants.MutexName, out var createdNew);
+if (!createdNew)
+{
+    await Console.Error.WriteLineAsync("Another Spotitoast server instance is already running for this user.");
+    return 1;
+}
 
 var port = IpcConstants.Port();
 
@@ -47,3 +55,5 @@ await Console.Out.WriteLineAsync($"Running as server on port {port}");
 
 var host = builder.Build();
 await host.RunAsync();
+
+return 0;

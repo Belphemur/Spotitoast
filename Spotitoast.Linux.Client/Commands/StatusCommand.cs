@@ -10,7 +10,7 @@ public sealed class StatusCommand : AsyncCommand
 {
     protected override async Task<int> ExecuteAsync(CommandContext context, CancellationToken cancellation)
     {
-        var running = await IpcHelper.IsServerRunningAsync();
+        var running = await IpcHelper.IsServerRunningAsync(cancellation);
 
         if (running)
         {

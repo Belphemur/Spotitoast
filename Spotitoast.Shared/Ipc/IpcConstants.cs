@@ -19,9 +19,8 @@ public static class IpcConstants
     public static int Port()
     {
         var hashed = MD5.HashData(Encoding.UTF8.GetBytes(Environment.UserName));
-        var intValue = BitConverter.ToInt32(hashed, 0);
-        var random = new Random(intValue);
-        return random.Next(20000, 21000);
+        var portOffset = BitConverter.ToUInt32(hashed, 0);
+        return 20000 + (int)(portOffset % 1000u);
     }
 
     /// <summary>

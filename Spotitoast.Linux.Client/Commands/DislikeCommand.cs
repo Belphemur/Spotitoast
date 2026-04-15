@@ -6,5 +6,5 @@ namespace Spotitoast.Linux.Client.Commands;
 public sealed class DislikeCommand : AsyncCommand
 {
     protected override Task<int> ExecuteAsync(CommandContext context, CancellationToken cancellation)
-        => IpcHelper.SendAsync(PlayerCommand.Dislike);
+        => IpcHelper.SendAsync(PlayerCommand.Dislike, cancellation);
 }

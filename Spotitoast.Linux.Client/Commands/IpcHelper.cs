@@ -14,14 +14,14 @@ internal static class IpcHelper
     /// Send a <see cref="PlayerCommand"/> to the running Spotitoast server and
     /// return the CLI exit code (0 = success).
     /// </summary>
-    public static async Task<int> SendAsync(PlayerCommand command)
+    public static async Task<int> SendAsync(PlayerCommand command, CancellationToken ct = default)
     {
         var port = IpcConstants.Port();
 
         using var client = new IpcClient();
         try
         {
-            await client.ConnectAsync(port);
+            await client.ConnectAsync(port, ct);
         }
         catch (SocketException)
         {
@@ -30,7 +30,7 @@ internal static class IpcHelper
             return 1;
         }
 
-        var response = await client.SendCommandAsync(command.ToString());
+        var response = await client.SendCommandAsync(command.ToString(), ct);
 
         if (string.IsNullOrEmpty(response))
         {
@@ -68,13 +68,13 @@ internal static class IpcHelper
     /// <summary>
     /// Check whether the server is reachable on the expected port.
     /// </summary>
-    public static async Task<bool> IsServerRunningAsync()
+    public static async Task<bool> IsServerRunningAsync(CancellationToken ct = default)
     {
         var port = IpcConstants.Port();
         using var client = new IpcClient();
         try
         {
-            await client.ConnectAsync(port);
+            await client.ConnectAsync(port, ct);
             return true;
         }
         catch (SocketException)

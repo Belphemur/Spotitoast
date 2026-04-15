@@ -6,5 +6,5 @@ namespace Spotitoast.Linux.Client.Commands;
 public sealed class TogglePlaybackCommand : AsyncCommand
 {
     protected override Task<int> ExecuteAsync(CommandContext context, CancellationToken cancellation)
-        => IpcHelper.SendAsync(PlayerCommand.TogglePlayback);
+        => IpcHelper.SendAsync(PlayerCommand.TogglePlayback, cancellation);
 }

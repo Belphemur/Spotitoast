@@ -22,12 +22,12 @@ public sealed class SendCommand : AsyncCommand<SendCommand.Settings>
     {
         if (!Enum.TryParse<PlayerCommand>(settings.Command, ignoreCase: true, out var command))
         {
-            AnsiConsole.MarkupLine($"[red]Unknown command:[/] {settings.Command}");
+            AnsiConsole.MarkupLine($"[red]Unknown command:[/] {Markup.Escape(settings.Command)}");
             AnsiConsole.MarkupLine("[dim]Available commands:[/] {0}",
                 string.Join(", ", Enum.GetNames<PlayerCommand>()));
             return 1;
         }
 
-        return await IpcHelper.SendAsync(command);
+        return await IpcHelper.SendAsync(command, cancellation);
     }
 }
