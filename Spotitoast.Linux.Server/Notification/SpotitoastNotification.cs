@@ -8,8 +8,8 @@ namespace Spotitoast.Linux.Server.Notification
         public SpotitoastNotification()
         {
             ApplicationName = "Spotitoast";
-            var resourceDirectory = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()!.Location)!, "Resources");
-            ApplicationIconPath = Path.Combine(resourceDirectory, "Spotitoast.ico");
+            var appDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()!.Location)!;
+            ApplicationIconPath = Path.Combine(appDirectory, "Spotitoast.ico");
             Hints.Add("desktop-entry", "Spotitoast");
         }
     }

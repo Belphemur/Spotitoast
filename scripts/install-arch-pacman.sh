@@ -194,7 +194,7 @@ begin
     echo
     echo '  install -Dm644 spotitoast/Spotitoast.Linux.Client/Resources/Spotitoast.desktop "$pkgdir/opt/spotitoast/Spotitoast.desktop"'
     echo '  install -Dm644 spotitoast/Spotitoast.Linux.Client/Resources/Spotitoast.desktop "$pkgdir/usr/share/applications/Spotitoast.desktop"'
-    echo '  install -Dm644 spotitoast/Spotitoast.Linux.Server/Resources/Spotitoast.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/Spotitoast.svg"'
+    echo '  install -Dm644 spotitoast/Spotitoast.Linux.Client/Resources/Spotitoast.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/Spotitoast.svg"'
     echo
     echo '  install -Dm644 spotitoast/Spotitoast.Linux.Server/Resources/spotitoast.service "$pkgdir/usr/lib/systemd/user/spotitoast.service"'
     echo '}'
