@@ -64,7 +64,7 @@ jobs:
 
             - name: Upload test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-results
                   path: TestResults
@@ -108,7 +108,7 @@ jobs:
               run: dotnet publish ${{ matrix.publish-project }} --no-build -c Release -o publish/${{ matrix.platform }}
 
             - name: Upload artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ matrix.artifact-name }}
                   path: publish/${{ matrix.platform }}
