@@ -76,11 +76,16 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - platform: linux
+                    - platform: linux-server
                       os: ubuntu-latest
-                      restore-target: Spotitoast.Linux/Spotitoast.Linux.csproj
-                      publish-project: Spotitoast.Linux/Spotitoast.Linux.csproj
+                      restore-target: Spotitoast.Linux.Server/Spotitoast.Linux.Server.csproj
+                      publish-project: Spotitoast.Linux.Server/Spotitoast.Linux.Server.csproj
                       artifact-name: spotitoast-linux
+                    - platform: linux-client
+                      os: ubuntu-latest
+                      restore-target: Spotitoast.Linux.Client/Spotitoast.Linux.Client.csproj
+                      publish-project: Spotitoast.Linux.Client/Spotitoast.Linux.Client.csproj
+                      artifact-name: spotitoast-linux-client
                     - platform: windows
                       os: windows-latest
                       restore-target: Spotitoast.sln
