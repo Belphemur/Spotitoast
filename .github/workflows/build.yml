@@ -1,67 +1,110 @@
 name: Build
 
 on:
-  push:
-    branches: [develop]
-  pull_request:
-    branches: [develop]
+    push:
+        branches: [develop]
+    pull_request:
+        branches: [develop]
 
 permissions:
-  contents: read
+    contents: read
+
+env:
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    REFERENCE_PROJECT: Spotitoast.Logic
 
 jobs:
-  build-linux:
-    name: Build Linux
-    runs-on: ubuntu-latest
+    detect-framework:
+        runs-on: ubuntu-latest
+        outputs:
+            framework: ${{ steps.framework.outputs.framework }}
+            dotnet-version: ${{ steps.framework.outputs.dotnet-version }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+            - name: Detect target framework and SDK version
+              id: framework
+              shell: pwsh
+              run: |
+                  [xml]$project = Get-Content "${{ env.REFERENCE_PROJECT }}/${{ env.REFERENCE_PROJECT }}.csproj"
+                  $framework = $project.Project.PropertyGroup.TargetFramework | Select-Object -First 1
+                  if ([string]::IsNullOrWhiteSpace($framework)) {
+                    throw "Unable to determine TargetFramework from ${{ env.REFERENCE_PROJECT }}/${{ env.REFERENCE_PROJECT }}.csproj"
+                  }
 
-    steps:
-      - uses: actions/checkout@v6
+                  $match = [System.Text.RegularExpressions.Regex]::Match($framework, '^net(?<major>\d+)\.(?<minor>\d+)')
+                  if (-not $match.Success) {
+                    throw "Unable to derive .NET SDK version from TargetFramework '$framework'"
+                  }
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.0.x'
-          dotnet-quality: 'preview'
+                  $dotnetVersion = "{0}.{1}.x" -f $match.Groups['major'].Value, $match.Groups['minor'].Value
+                  "framework=$framework" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+                  "dotnet-version=$dotnetVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Restore dependencies
-        run: dotnet restore Spotitoast.Linux/Spotitoast.Linux.csproj
+    test:
+        needs: detect-framework
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
 
-      - name: Build
-        run: dotnet build Spotitoast.Linux/Spotitoast.Linux.csproj --no-restore -c Release
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: ${{ needs.detect-framework.outputs.dotnet-version }}
+                  dotnet-quality: "preview"
 
-      - name: Publish
-        run: dotnet publish Spotitoast.Linux/Spotitoast.Linux.csproj --no-build -c Release -o publish/linux
+            - name: Restore
+              run: dotnet restore Spotitoast.Logic.Tests/Spotitoast.Logic.Tests.csproj
 
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: spotitoast-linux
-          path: publish/linux
+            - name: Test
+              run: dotnet test Spotitoast.Logic.Tests/Spotitoast.Logic.Tests.csproj --no-restore -c Release --logger trx --results-directory TestResults
 
-  build-windows:
-    name: Build Windows
-    runs-on: windows-latest
+            - name: Upload test results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-results
+                  path: TestResults
 
-    steps:
-      - uses: actions/checkout@v6
+    build:
+        needs: detect-framework
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - platform: linux
+                      os: ubuntu-latest
+                      restore-target: Spotitoast.Linux/Spotitoast.Linux.csproj
+                      publish-project: Spotitoast.Linux/Spotitoast.Linux.csproj
+                      artifact-name: spotitoast-linux
+                    - platform: windows
+                      os: windows-latest
+                      restore-target: Spotitoast.sln
+                      publish-project: Spotitoast/Spotitoast.csproj
+                      artifact-name: spotitoast-windows
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.0.x'
-          dotnet-quality: 'preview'
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: ${{ needs.detect-framework.outputs.dotnet-version }}
+                  dotnet-quality: "preview"
 
-      - name: Restore dependencies
-        run: dotnet restore Spotitoast.sln
+            - name: Restore dependencies
+              run: dotnet restore ${{ matrix.restore-target }}
 
-      - name: Build
-        run: dotnet build Spotitoast.sln --no-restore -c Release
+            - name: Build
+              run: dotnet build ${{ matrix.restore-target }} --no-restore -c Release
 
-      - name: Publish Windows app
-        run: dotnet publish Spotitoast/Spotitoast.csproj --no-build -c Release -o publish/windows
+            - name: Publish
+              run: dotnet publish ${{ matrix.publish-project }} --no-build -c Release -o publish/${{ matrix.platform }}
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: spotitoast-windows
-          path: publish/windows
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.artifact-name }}
+                  path: publish/${{ matrix.platform }}
