@@ -1,12 +1,15 @@
-﻿using System;
-using System.Runtime.Loader;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Job.Scheduler.Scheduler;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Systemd;
 using Ninject;
 using Spotitoast.Linux.Context;
+using Spotitoast.Linux.Hosting;
+using static Spotitoast.Logic.Dependencies.Bootstrap;
 
 namespace Spotitoast.Linux
 {
@@ -14,43 +17,67 @@ namespace Spotitoast.Linux
     {
         static async Task Main(string[] args)
         {
-            Logic.Dependencies.Bootstrap.Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
+            Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
+
             var mutexName = $"Spotitoast-{Environment.UserName}";
-            using var mutex = new Mutex(true, @$"Global\{mutexName}", out var createdNew);
-            //When creating the mutex, we run a server
+            var mutex = new Mutex(true, @$"Global\{mutexName}", out var createdNew);
             var port = Port();
-            if (createdNew)
+
+            // Subsequent instances act as lightweight TCP clients that
+            // forward a single command to the already-running server.
+            if (!createdNew)
             {
-                await RunServer(port);
+                await SendClientCommand(args, port);
+                mutex.Dispose();
                 return;
             }
 
-            await SendClientCommand(args, port);
-            Environment.Exit(0);
+            try
+            {
+                await RunServer(args, port);
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+                mutex.Dispose();
+            }
         }
 
         private static async Task SendClientCommand(string[] args, int port)
         {
-            using var clientContext = Logic.Dependencies.Bootstrap.Kernel.Get<ClientContext>();
+            using var clientContext = Kernel.Get<ClientContext>();
             await clientContext.ConnectAsync(port);
             await clientContext.SendCommand(args);
         }
 
-        private static async Task RunServer(int port)
+        private static async Task RunServer(string[] args, int port)
         {
-            var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += (_, eventArgs) =>
-            {
-                eventArgs.Cancel = true;
-                cts.Cancel();
-            };
-            AssemblyLoadContext.Default.Unloading += _ => cts.Cancel();
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => { cts.Cancel(); };
+            var builder = Host.CreateApplicationBuilder(args);
+
+            // When launched by systemd the extension sends READY=1,
+            // STOPPING=1, STATUS= and WATCHDOG=1 notifications
+            // automatically.  Outside systemd it is a harmless no-op.
+            builder.Services.UseSystemd();
+
+            // Make the Ninject kernel available to hosted services so
+            // all business-logic resolution stays inside Ninject.
+            builder.Services.AddSingleton(Kernel);
+
+            builder.Services.AddHostedService(sp =>
+                new SpotitoastService(
+                    sp.GetRequiredService<IKernel>(),
+                    sp.GetRequiredService<IHostApplicationLifetime>(),
+                    port));
+
+            builder.Services.AddHostedService(sp =>
+                new SystemdStatusReporter(
+                    sp.GetRequiredService<IKernel>(),
+                    sp.GetService<ISystemdNotifier>()));
 
             await Console.Out.WriteLineAsync($"Running as server on port {port}");
-            await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStartAsync(port, cts.Token);
-            await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync(cts.Token);
-            Environment.Exit(0);
+
+            var host = builder.Build();
+            await host.RunAsync();
         }
 
         private static int Port()
