@@ -1,0 +1,60 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Job.Scheduler.Scheduler;
+using Microsoft.Extensions.Hosting;
+using Spotitoast.Linux.Context;
+using Spotitoast.Linux.Notification;
+
+namespace Spotitoast.Linux.Hosting
+{
+    /// <summary>
+    /// Background service that runs the Spotitoast TCP server event loop
+    /// and registers notification handlers for the Linux desktop.
+    /// </summary>
+    public class SpotitoastService : BackgroundService
+    {
+        private readonly IHostApplicationLifetime _lifetime;
+        private readonly INotificationHandler _notificationHandler;
+        private readonly ServerContext _serverContext;
+        private readonly IJobScheduler _jobScheduler;
+        private readonly int _port;
+
+        public SpotitoastService(
+            IHostApplicationLifetime lifetime,
+            INotificationHandler notificationHandler,
+            ServerContext serverContext,
+            IJobScheduler jobScheduler,
+            int port)
+        {
+            _lifetime = lifetime;
+            _notificationHandler = notificationHandler;
+            _serverContext = serverContext;
+            _jobScheduler = jobScheduler;
+            _port = port;
+        }
+
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            // Wire notification subscriptions before the host signals READY=1
+            // so systemd considers the service fully operational.
+            _notificationHandler.RegisterNotifications();
+            return base.StartAsync(cancellationToken);
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            await _serverContext.EventLoopStartAsync(_port, stoppingToken);
+
+            // The event loop exits when the cancellation token fires or when
+            // a client sends the Exit command.  In either case, ask the host
+            // to tear down gracefully.
+            _lifetime.StopApplication();
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await base.StopAsync(cancellationToken);
+            await _jobScheduler.StopAsync(cancellationToken);
+        }
+    }
+}

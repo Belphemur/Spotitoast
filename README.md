@@ -122,8 +122,10 @@ Spotitoast is built with a modular, platform-aware architecture:
 
 The application uses:
 - **Reactive Extensions (Rx)** for event-driven architecture
-- **Ninject** for dependency injection
+- **Microsoft.Extensions.DependencyInjection** for dependency injection
 - **Job.Scheduler** for periodic polling tasks
+- **IHttpClientFactory** for HTTP client management
+- **.NET Generic Host** with **systemd** integration on Linux
 
 ## Building for Development
 

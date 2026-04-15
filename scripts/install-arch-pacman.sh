@@ -155,18 +155,19 @@ or die 'Failed to create source tarball'
 begin
     printf '%s\n' \
         '[Unit]' \
-        'Description=Spotitoast user background service' \
+        'Description=Spotitoast – Spotify notification controller' \
         'After=graphical-session.target network-online.target' \
         'Wants=graphical-session.target network-online.target' \
         'PartOf=graphical-session.target' \
         '' \
         '[Service]' \
-        'Type=simple' \
+        'Type=notify' \
         'WorkingDirectory=/opt/spotitoast' \
         'ExecStart=/opt/spotitoast/Spotitoast.Linux' \
         'Environment=XDG_DATA_DIRS=/usr/local/share:/usr/share' \
         'Restart=on-failure' \
         'RestartSec=2' \
+        'WatchdogSec=60' \
         '' \
         '[Install]' \
         'WantedBy=default.target'

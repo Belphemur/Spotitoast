@@ -1,12 +1,18 @@
-﻿using System;
-using System.Runtime.Loader;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Scheduler;
-using Ninject;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Systemd;
+using Spotitoast.Linux.Bootstrap;
 using Spotitoast.Linux.Context;
+using Spotitoast.Linux.Hosting;
+using Spotitoast.Linux.Notification;
+using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Dependencies;
 
 namespace Spotitoast.Linux
 {
@@ -14,43 +20,81 @@ namespace Spotitoast.Linux
     {
         static async Task Main(string[] args)
         {
-            Logic.Dependencies.Bootstrap.Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
             var mutexName = $"Spotitoast-{Environment.UserName}";
-            using var mutex = new Mutex(true, @$"Global\{mutexName}", out var createdNew);
-            //When creating the mutex, we run a server
+            var mutex = new Mutex(true, @$"Global\{mutexName}", out var createdNew);
             var port = Port();
-            if (createdNew)
-            {
-                await RunServer(port);
-                return;
-            }
 
-            await SendClientCommand(args, port);
-            Environment.Exit(0);
+            try
+            {
+                // Subsequent instances act as lightweight TCP clients that
+                // forward a single command to the already-running server.
+                if (!createdNew)
+                {
+                    await SendClientCommand(args, port);
+                    return;
+                }
+
+                await RunServer(args, port);
+            }
+            finally
+            {
+                if (createdNew)
+                {
+                    mutex.ReleaseMutex();
+                }
+
+                mutex.Dispose();
+            }
         }
 
         private static async Task SendClientCommand(string[] args, int port)
         {
-            using var clientContext = Logic.Dependencies.Bootstrap.Kernel.Get<ClientContext>();
+            var services = new ServiceCollection();
+            services.AddSpotitoastCore();
+            await using var sp = services.BuildServiceProvider();
+
+            var factory = sp.GetRequiredService<IActionFactory>();
+            using var clientContext = new ClientContext(factory);
             await clientContext.ConnectAsync(port);
             await clientContext.SendCommand(args);
         }
 
-        private static async Task RunServer(int port)
+        private static async Task RunServer(string[] args, int port)
         {
-            var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += (_, eventArgs) =>
-            {
-                eventArgs.Cancel = true;
-                cts.Cancel();
-            };
-            AssemblyLoadContext.Default.Unloading += _ => cts.Cancel();
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => { cts.Cancel(); };
+            var builder = Host.CreateApplicationBuilder(args);
+
+            // When launched by systemd the extension sends READY=1,
+            // STOPPING=1, STATUS= and WATCHDOG=1 notifications
+            // automatically.  Outside systemd it is a harmless no-op.
+            builder.Services.AddSystemd();
+
+            // Core business-logic services (Spotify, actions, etc.)
+            builder.Services.AddSpotitoastCore();
+
+            // Linux-specific services (DBus notifications)
+            builder.Services.AddSpotitoastLinux();
+
+            // TCP server context
+            builder.Services.AddSingleton<ServerContext>();
+
+            // Hosted services
+            builder.Services.AddHostedService(sp =>
+                new SpotitoastService(
+                    sp.GetRequiredService<IHostApplicationLifetime>(),
+                    sp.GetRequiredService<INotificationHandler>(),
+                    sp.GetRequiredService<ServerContext>(),
+                    sp.GetRequiredService<IJobScheduler>(),
+                    port));
+
+            builder.Services.AddHostedService(sp =>
+                new SystemdStatusReporter(
+                    sp.GetRequiredService<Logic.Business.Player.ISpotifyNotifier>(),
+                    sp.GetService<ISystemdNotifier>()));
 
             await Console.Out.WriteLineAsync($"Running as server on port {port}");
-            await Logic.Dependencies.Bootstrap.Kernel.Get<ServerContext>().EventLoopStartAsync(port, cts.Token);
-            await Logic.Dependencies.Bootstrap.Kernel.Get<IJobScheduler>().StopAsync(cts.Token);
-            Environment.Exit(0);
+
+            var host = builder.Build();
+            await host.RunAsync();
         }
 
         private static int Port()

@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using SpotifyAPI.Web;
+using Spotitoast.Logic.Framework.Extensions;
 
 namespace Spotitoast.Logic.Model.Song.Adapter
 {
@@ -12,11 +13,11 @@ namespace Spotitoast.Logic.Model.Song.Adapter
         public IAlbum Album { get; }
         public bool IsLoved { get; }
 
-        public TrackAdapter(FullTrack track, bool isLoved)
+        public TrackAdapter(FullTrack track, bool isLoved, ImageDownloader imageDownloader)
         {
             Artists = track.Artists.Select(artist => artist.Name).ToList();
             Name = track.Name;
-            Album = new AlbumAdapter(track.Album);
+            Album = new AlbumAdapter(track.Album, imageDownloader);
             IsLoved = isLoved;
         }
     }
