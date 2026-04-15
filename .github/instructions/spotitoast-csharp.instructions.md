@@ -12,7 +12,7 @@ applyTo: "**/*.cs"
 
 - The repository uses `Microsoft.Extensions.DependencyInjection` (MEDI) for all DI wiring. The older Ninject container has been fully removed.
 - Core service registrations live in `Spotitoast.Logic/Dependencies/Bootstrap.cs` via the `AddSpotitoastCore()` extension method on `IServiceCollection`.
-- Linux-specific registrations live in `Spotitoast.Linux/Bootstrap/BootstrapLinux.cs` via `AddSpotitoastLinux()`.
+- Linux-specific registrations live in `Spotitoast.Linux/Bootstrap/BootstrapLinuxModule.cs` via `AddSpotitoastLinux()`.
 - When adding a new service, register it in the appropriate `IServiceCollection` extension method rather than resolving it manually or using service locators.
 - The `EquatableFactory<TKey, TImplementation>` pattern resolves all `IAction` implementations via constructor-injected `IEnumerable<IAction>`, building a key-based dictionary. Register new actions as `services.AddSingleton<IAction, YourAction>()` in `AddSpotitoastCore()`.
 
