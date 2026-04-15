@@ -53,6 +53,8 @@ jobs:
               with:
                   dotnet-version: ${{ needs.detect-framework.outputs.dotnet-version }}
                   dotnet-quality: "preview"
+                  cache: true
+                  cache-dependency-path: "**/*.csproj"
 
             - name: Restore
               run: dotnet restore Spotitoast.Logic.Tests/Spotitoast.Logic.Tests.csproj
@@ -93,6 +95,8 @@ jobs:
               with:
                   dotnet-version: ${{ needs.detect-framework.outputs.dotnet-version }}
                   dotnet-quality: "preview"
+                  cache: true
+                  cache-dependency-path: "**/*.csproj"
 
             - name: Restore dependencies
               run: dotnet restore ${{ matrix.restore-target }}
