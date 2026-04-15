@@ -1,0 +1,64 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Restore dependencies
+        run: dotnet restore Spotitoast.Linux/Spotitoast.Linux.csproj
+
+      - name: Build
+        run: dotnet build Spotitoast.Linux/Spotitoast.Linux.csproj --no-restore -c Release
+
+      - name: Publish
+        run: dotnet publish Spotitoast.Linux/Spotitoast.Linux.csproj --no-build -c Release -o publish/linux
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotitoast-linux
+          path: publish/linux
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Restore dependencies
+        run: dotnet restore Spotitoast.sln
+
+      - name: Build
+        run: dotnet build Spotitoast.sln --no-restore -c Release
+
+      - name: Publish Windows app
+        run: dotnet publish Spotitoast/Spotitoast.csproj --no-build -c Release -o publish/windows
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotitoast-windows
+          path: publish/windows
