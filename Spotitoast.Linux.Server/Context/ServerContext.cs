@@ -4,12 +4,12 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Notify.Linux.Client;
-using Spotitoast.Linux.Notification;
+using Spotitoast.Linux.Server.Notification;
 using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Logic.Business.Command;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Linux.Context
+namespace Spotitoast.Linux.Server.Context
 {
     public class ServerContext
     {

@@ -1,0 +1,49 @@
+using System;
+using Job.Scheduler.Scheduler;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Systemd;
+using Spotitoast.Linux.Server.Bootstrap;
+using Spotitoast.Linux.Server.Context;
+using Spotitoast.Linux.Server.Hosting;
+using Spotitoast.Linux.Server.Notification;
+using Spotitoast.Logic.Business.Player;
+using Spotitoast.Logic.Dependencies;
+using Spotitoast.Shared.Ipc;
+
+var port = IpcConstants.Port();
+
+var builder = Host.CreateApplicationBuilder(args);
+
+// When launched by systemd the extension sends READY=1,
+// STOPPING=1, STATUS= and WATCHDOG=1 notifications
+// automatically.  Outside systemd it is a harmless no-op.
+builder.Services.AddSystemd();
+
+// Core business-logic services (Spotify, actions, etc.)
+builder.Services.AddSpotitoastCore();
+
+// Linux-specific services (DBus notifications)
+builder.Services.AddSpotitoastLinux();
+
+// TCP server context
+builder.Services.AddSingleton<ServerContext>();
+
+// Hosted services
+builder.Services.AddHostedService(sp =>
+    new SpotitoastService(
+        sp.GetRequiredService<IHostApplicationLifetime>(),
+        sp.GetRequiredService<INotificationHandler>(),
+        sp.GetRequiredService<ServerContext>(),
+        sp.GetRequiredService<IJobScheduler>(),
+        port));
+
+builder.Services.AddHostedService(sp =>
+    new SystemdStatusReporter(
+        sp.GetRequiredService<ISpotifyNotifier>(),
+        sp.GetService<ISystemdNotifier>()));
+
+await Console.Out.WriteLineAsync($"Running as server on port {port}");
+
+var host = builder.Build();
+await host.RunAsync();

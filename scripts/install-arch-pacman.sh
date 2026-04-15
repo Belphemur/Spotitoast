@@ -130,7 +130,7 @@ if test "$INSTALL_PACKAGE" = true -o "$SYNC_DEPS" = true
     require_cmd sudo
 end
 
-if not test -f "$REPO_ROOT/Spotitoast.Linux/Spotitoast.Linux.csproj"
+if not test -f "$REPO_ROOT/Spotitoast.Linux.Server/Spotitoast.Linux.Server.csproj"
     die 'Run this script from inside the Spotitoast repository'
 end
 
@@ -170,25 +170,33 @@ begin
     echo 'build() {'
     echo '  cd "$srcdir/spotitoast"'
     echo
-    echo "  dotnet publish Spotitoast.Linux/Spotitoast.Linux.csproj \\" 
+    echo "  dotnet publish Spotitoast.Linux.Server/Spotitoast.Linux.Server.csproj \\" 
     echo "    -c Release \\" 
     echo "    -r linux-x64 \\" 
     echo "    --self-contained false \\" 
     echo "    -p:DebugType=embedded \\" 
-    echo '    -o "$srcdir/publish"'
+    echo '    -o "$srcdir/publish-server"'
+    echo
+    echo "  dotnet publish Spotitoast.Linux.Client/Spotitoast.Linux.Client.csproj \\" 
+    echo "    -c Release \\" 
+    echo "    -r linux-x64 \\" 
+    echo "    --self-contained false \\" 
+    echo "    -p:DebugType=embedded \\" 
+    echo '    -o "$srcdir/publish-client"'
     echo '}'
     echo
     echo 'package() {'
     echo '  cd "$srcdir"'
     echo
     echo '  mkdir -p "$pkgdir/opt/spotitoast"'
-    echo '  cp -a publish/. "$pkgdir/opt/spotitoast/"'
+    echo '  cp -a publish-server/. "$pkgdir/opt/spotitoast/"'
+    echo '  cp -a publish-client/. "$pkgdir/opt/spotitoast/"'
     echo
-    echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/Spotitoast.desktop "$pkgdir/opt/spotitoast/Spotitoast.desktop"'
-    echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/Spotitoast.desktop "$pkgdir/usr/share/applications/Spotitoast.desktop"'
-    echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/Spotitoast.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/Spotitoast.svg"'
+    echo '  install -Dm644 spotitoast/Spotitoast.Linux.Client/Resources/Spotitoast.desktop "$pkgdir/opt/spotitoast/Spotitoast.desktop"'
+    echo '  install -Dm644 spotitoast/Spotitoast.Linux.Client/Resources/Spotitoast.desktop "$pkgdir/usr/share/applications/Spotitoast.desktop"'
+    echo '  install -Dm644 spotitoast/Spotitoast.Linux.Server/Resources/Spotitoast.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/Spotitoast.svg"'
     echo
-    echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/spotitoast.service "$pkgdir/usr/lib/systemd/user/spotitoast.service"'
+    echo '  install -Dm644 spotitoast/Spotitoast.Linux.Server/Resources/spotitoast.service "$pkgdir/usr/lib/systemd/user/spotitoast.service"'
     echo '}'
 end >"$WORK_DIR/PKGBUILD"
 or die 'Failed to write PKGBUILD'

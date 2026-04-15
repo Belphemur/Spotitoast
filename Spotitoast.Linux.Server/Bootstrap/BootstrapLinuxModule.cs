@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Notify.Linux.Client;
-using Spotitoast.Linux.Notification;
+using Spotitoast.Linux.Server.Notification;
 using Tmds.DBus;
 
-namespace Spotitoast.Linux.Bootstrap
+namespace Spotitoast.Linux.Server.Bootstrap
 {
     public static class BootstrapLinux
     {

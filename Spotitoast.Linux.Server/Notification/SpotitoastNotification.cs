@@ -1,7 +1,7 @@
 using System.IO;
 using Notify.Linux.Client;
 
-namespace Spotitoast.Linux.Notification
+namespace Spotitoast.Linux.Server.Notification
 {
     public class SpotitoastNotification : NotificationData
     {

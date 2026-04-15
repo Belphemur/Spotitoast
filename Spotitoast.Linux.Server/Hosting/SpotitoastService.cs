@@ -2,10 +2,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Scheduler;
 using Microsoft.Extensions.Hosting;
-using Spotitoast.Linux.Context;
-using Spotitoast.Linux.Notification;
+using Spotitoast.Linux.Server.Context;
+using Spotitoast.Linux.Server.Notification;
 
-namespace Spotitoast.Linux.Hosting
+namespace Spotitoast.Linux.Server.Hosting
 {
     /// <summary>
     /// Background service that runs the Spotitoast TCP server event loop
