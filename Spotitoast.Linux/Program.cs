@@ -24,22 +24,25 @@ namespace Spotitoast.Linux
             var mutex = new Mutex(true, @$"Global\{mutexName}", out var createdNew);
             var port = Port();
 
-            // Subsequent instances act as lightweight TCP clients that
-            // forward a single command to the already-running server.
-            if (!createdNew)
-            {
-                await SendClientCommand(args, port);
-                mutex.Dispose();
-                return;
-            }
-
             try
             {
+                // Subsequent instances act as lightweight TCP clients that
+                // forward a single command to the already-running server.
+                if (!createdNew)
+                {
+                    await SendClientCommand(args, port);
+                    return;
+                }
+
                 await RunServer(args, port);
             }
             finally
             {
-                mutex.ReleaseMutex();
+                if (createdNew)
+                {
+                    mutex.ReleaseMutex();
+                }
+
                 mutex.Dispose();
             }
         }
