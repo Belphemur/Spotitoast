@@ -9,6 +9,7 @@ namespace Spotitoast.Logic.Framework.Extensions
     public static class UriExtension
     {
         private static readonly IMemoryCache MemoryCache = new MemoryCache(new MemoryCacheOptions());
+        private static readonly HttpClient Client = new();
 
         /// <summary>
         /// Download in memory the image and return it as object
@@ -26,8 +27,7 @@ namespace Spotitoast.Logic.Framework.Extensions
             {
                 using var entry = MemoryCache.CreateEntry(uri);
                 entry.SlidingExpiration = TimeSpan.FromHours(1);
-                using var client = new HttpClient();
-                var response = await client.GetAsync(uri);
+                var response = await Client.GetAsync(uri);
                 var contentStream = await response.Content.ReadAsStreamAsync();
                 image = Image.FromStream(contentStream);
                 entry.Value = image;

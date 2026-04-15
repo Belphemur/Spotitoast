@@ -66,12 +66,14 @@ namespace Spotitoast.Linux.Notification
             _spotifyNotifier.TrackPlayed
                             .Select(track => Observable.FromAsync(async () =>
                             {
+                                var albumArt = await track.Album.Art;
+                                var resizeImage = albumArt.ResizeImage(new Size(100, 100));
                                 var notificationData = new SpotitoastNotification
                                 {
                                     Summary = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
                                     Body = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})\n{track.ArtistsDisplay}",
                                     Expiration = TimeSpan.FromSeconds(2),
-                                    Image = (await track.Album.Art).ResizeImage(new Size(100, 100))
+                                    Image = resizeImage
                                 };
                                 SetActions(track, notificationData);
 

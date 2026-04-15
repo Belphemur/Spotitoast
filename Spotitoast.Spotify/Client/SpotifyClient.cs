@@ -94,7 +94,7 @@ namespace Spotitoast.Spotify.Client
 
                 var playedTrack = fullTrack;
 
-                Trace.WriteLine($"Track Found: ${fullTrack.Id}");
+                Trace.WriteLine($"Track Found: ${fullTrack.Id} vs old ${oldTrack?.Id}");
 
                 if (forceNotify
                     || oldTrack == null

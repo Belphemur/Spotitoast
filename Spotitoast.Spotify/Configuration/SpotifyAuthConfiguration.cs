@@ -57,7 +57,7 @@ namespace Spotitoast.Spotify.Configuration
         public string[] AuthScopes => new[] {Scopes.UserReadEmail, Scopes.UserLibraryModify, Scopes.UserLibraryRead, Scopes.UserModifyPlaybackState, Scopes.UserReadPlaybackState};
         public string ClientId => "fc945fa1296945d09628cff8e2159941";
 
-        public Uri ListenUri => new($"http://localhost:{ListenPort}/callback");
+        public Uri ListenUri => new($"http://127.0.0.1:{ListenPort}/callback");
         public int ListenPort => 4002;
 
         public override void Migrate()
