@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Drawing;
 using System.Net.Http;
 using System.Threading.Tasks;
+using IronSoftware.Drawing;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Spotitoast.Logic.Framework.Extensions
@@ -16,27 +16,27 @@ namespace Spotitoast.Logic.Framework.Extensions
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static async Task<Image> DownloadImage(this Uri uri)
+        public static async Task<AnyBitmap> DownloadImage(this Uri uri)
         {
-            if (MemoryCache.TryGetValue(uri, out Image image))
+            if (MemoryCache.TryGetValue(uri, out byte[] imageBytes))
             {
-                return image;
+                return AnyBitmap.FromBytes(imageBytes);
             }
 
             try
             {
                 using var entry = MemoryCache.CreateEntry(uri);
                 entry.SlidingExpiration = TimeSpan.FromHours(1);
-                var response = await Client.GetAsync(uri);
-                var contentStream = await response.Content.ReadAsStreamAsync();
-                image = Image.FromStream(contentStream);
-                entry.Value = image;
-                return image;
+                using var response = await Client.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                imageBytes = await response.Content.ReadAsByteArrayAsync();
+                entry.Value = imageBytes;
+                return AnyBitmap.FromBytes(imageBytes);
             }
             catch (HttpRequestException e)
             {
                 await Console.Error.WriteLineAsync(e.ToString());
-                return new Bitmap(15, 15);
+                return new AnyBitmap(15, 15);
             }
         }
     }

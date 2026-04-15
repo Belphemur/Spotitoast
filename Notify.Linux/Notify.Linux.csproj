@@ -6,9 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="GtkSharp" Version="3.24.24.133-develop" />
+      <PackageReference Include="IronSoftware.System.Drawing" Version="2025.3.5" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
-      <PackageReference Include="System.Drawing.Common" Version="11.0.0-preview.3.26207.106" />
+      <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
       <PackageReference Include="Tmds.DBus" Version="0.92.0" />
     </ItemGroup>
 

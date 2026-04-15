@@ -1,8 +1,4 @@
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
-using Gdk;
-using Image = System.Drawing.Image;
+using IronSoftware.Drawing;
 
 namespace Notify.Linux.Extensions
 {
@@ -19,30 +15,38 @@ namespace Notify.Linux.Extensions
             public byte[] Pixels;
         }
 
-        public static IconData ToIconData(this Pixbuf pixbuf)
+        public static IconData ToIconData(this AnyBitmap image)
         {
-            var iconData = new IconData
+            return new IconData
             {
-                Height = pixbuf.Height,
-                Width = pixbuf.Width,
-                Rowstride = pixbuf.Rowstride,
-                HasAlpha = pixbuf.HasAlpha,
-                BitsPerSample = pixbuf.BitsPerSample,
-                NChannels = pixbuf.NChannels
+                Height = image.Height,
+                Width = image.Width,
+                Rowstride = image.Width * 4,
+                HasAlpha = true,
+                BitsPerSample = 8,
+                NChannels = 4,
+                Pixels = image.ToRgbaBuffer()
             };
-            var len = (iconData.Height - 1) * iconData.Rowstride + iconData.Width * ((iconData.NChannels * iconData.BitsPerSample + 7) / 8);
-            iconData.Pixels = new byte[len];
-            Marshal.Copy(pixbuf.Pixels, iconData.Pixels, 0, len);
-            return iconData;
         }
 
-        public static Pixbuf ToPixbuf(this Image image)
+        private static byte[] ToRgbaBuffer(this AnyBitmap image)
         {
-            using var stream = new MemoryStream();
-            image.Save(stream, ImageFormat.Bmp);
-            stream.Position = 0;
-            var pixbuf = new Pixbuf(stream);
-            return pixbuf;
+            var pixels = new byte[image.Width * image.Height * 4];
+
+            for (var y = 0; y < image.Height; y++)
+            {
+                for (var x = 0; x < image.Width; x++)
+                {
+                    var color = image.GetPixel(x, y);
+                    var index = (y * image.Width + x) * 4;
+                    pixels[index] = color.R;
+                    pixels[index + 1] = color.G;
+                    pixels[index + 2] = color.B;
+                    pixels[index + 3] = color.A;
+                }
+            }
+
+            return pixels;
         }
     }
 }

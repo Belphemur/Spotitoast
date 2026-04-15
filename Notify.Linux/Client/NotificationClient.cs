@@ -48,7 +48,7 @@ namespace Notify.Linux.Client
             var hints = notification.Hints;
             if (notification.Image != null && !hints.ContainsKey("image-data"))
             {
-                hints.Add("image-data", notification.Image.ToPixbuf().ToIconData());
+                hints.Add("image-data", notification.Image.ToIconData());
             }
 
             var actions = notification.Actions != null && notification.Actions.Length > 0

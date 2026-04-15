@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading.Tasks;
+using IronSoftware.Drawing;
 using JetBrains.Annotations;
 
 namespace Notify.Linux.Client
@@ -53,7 +53,7 @@ namespace Notify.Linux.Client
         /// Image of the notification
         /// </summary>
         [CanBeNull]
-        public Image Image { get; set; }
+        public AnyBitmap Image { get; set; }
 
         /// <summary>
         /// How long the notification stays up
