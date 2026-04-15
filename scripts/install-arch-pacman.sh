@@ -153,67 +153,6 @@ git -C "$REPO_ROOT" archive --format=tar.gz --prefix=spotitoast/ HEAD >"$WORK_DI
 or die 'Failed to create source tarball'
 
 begin
-    printf '%s\n' \
-        '[Unit]' \
-        'Description=Spotitoast – Spotify notification controller' \
-        'After=graphical-session.target network-online.target' \
-        'Wants=graphical-session.target network-online.target' \
-        'PartOf=graphical-session.target' \
-        '' \
-        '[Service]' \
-        'Type=notify' \
-        'WorkingDirectory=/opt/spotitoast' \
-        'ExecStart=/opt/spotitoast/Spotitoast.Linux' \
-        'Environment=XDG_DATA_DIRS=/usr/local/share:/usr/share' \
-        'Restart=on-failure' \
-        'RestartSec=2' \
-        'WatchdogSec=60' \
-        '' \
-        '[Install]' \
-        'WantedBy=default.target'
-end >"$WORK_DIR/spotitoast.service"
-or die 'Failed to write systemd service file'
-
-begin
-    printf '%s\n' \
-        '[Desktop Entry]' \
-        'Type=Application' \
-        'Name=Spotitoast' \
-        'Comment=Control Spotify and notifications from your desktop' \
-        'Exec=/opt/spotitoast/Spotitoast.Linux' \
-        'Icon=Spotitoast' \
-        'Terminal=false' \
-        'Categories=AudioVideo;Player;' \
-        'Actions=TogglePlayback;Like;Dislike;Skip;CurrentlyPlaying;' \
-        '' \
-        '[Desktop Action TogglePlayback]' \
-        'Name=Toggle Playback' \
-        'Exec=/opt/spotitoast/Spotitoast.Linux TogglePlayback' \
-        'X-KDE-Shortcuts=Ctrl+Home' \
-        '' \
-        '[Desktop Action Like]' \
-        'Name=Like Current Track' \
-        'Exec=/opt/spotitoast/Spotitoast.Linux Like' \
-        'X-KDE-Shortcuts=Ctrl+PgUp' \
-        '' \
-        '[Desktop Action Dislike]' \
-        'Name=Dislike Current Track' \
-        'Exec=/opt/spotitoast/Spotitoast.Linux Dislike' \
-        'X-KDE-Shortcuts=Ctrl+PgDown' \
-        '' \
-        '[Desktop Action Skip]' \
-        'Name=Skip Track' \
-        'Exec=/opt/spotitoast/Spotitoast.Linux Skip' \
-        'X-KDE-Shortcuts=Ctrl+Right' \
-        '' \
-        '[Desktop Action CurrentlyPlaying]' \
-        'Name=Show Current Track' \
-        'Exec=/opt/spotitoast/Spotitoast.Linux CurrentlyPlaying' \
-        'X-KDE-Shortcuts=Ctrl+End'
-end >"$WORK_DIR/spotitoast.desktop"
-or die 'Failed to write desktop entry'
-
-begin
     echo "pkgname=$PKGNAME"
     echo "pkgver=$PKGVER"
     echo "pkgrel=$PKGREL"
@@ -225,8 +164,8 @@ begin
     echo "makedepends=('dotnet-sdk')"
     echo "optdepends=('plasma-workspace: KDE shortcut integration for desktop actions')"
     echo "options=('!strip')"
-    echo "source=('spotitoast.tar.gz' 'spotitoast.service' 'spotitoast.desktop')"
-    echo "sha256sums=('SKIP' 'SKIP' 'SKIP')"
+    echo "source=('spotitoast.tar.gz')"
+    echo "sha256sums=('SKIP')"
     echo
     echo 'build() {'
     echo '  cd "$srcdir/spotitoast"'
@@ -245,12 +184,11 @@ begin
     echo '  mkdir -p "$pkgdir/opt/spotitoast"'
     echo '  cp -a publish/. "$pkgdir/opt/spotitoast/"'
     echo
-    echo '  # Preserve desktop autostart compatibility and add KDE actions in system menu metadata.'
     echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/Spotitoast.desktop "$pkgdir/opt/spotitoast/Spotitoast.desktop"'
-    echo '  install -Dm644 spotitoast.desktop "$pkgdir/usr/share/applications/Spotitoast.desktop"'
+    echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/Spotitoast.desktop "$pkgdir/usr/share/applications/Spotitoast.desktop"'
     echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/Spotitoast.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/Spotitoast.svg"'
     echo
-    echo '  install -Dm644 spotitoast.service "$pkgdir/usr/lib/systemd/user/spotitoast.service"'
+    echo '  install -Dm644 spotitoast/Spotitoast.Linux/Resources/spotitoast.service "$pkgdir/usr/lib/systemd/user/spotitoast.service"'
     echo '}'
 end >"$WORK_DIR/PKGBUILD"
 or die 'Failed to write PKGBUILD'
