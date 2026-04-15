@@ -21,6 +21,9 @@
         <None Update="Resources\Spotitoast.desktop">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Include="Resources\spotitoast.service">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <PropertyGroup>
         <ApplicationIcon>Resources\Spotitoast.ico</ApplicationIcon>

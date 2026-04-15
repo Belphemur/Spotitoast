@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Ninject;
-using Ninject.Syntax;
 
 namespace Spotitoast.Logic.Framework.Factory
 {
@@ -12,9 +10,9 @@ namespace Spotitoast.Logic.Framework.Factory
     {
         private readonly Dictionary<TKey, TImplementation> _dictionary;
 
-        protected EquatableFactory(IResolutionRoot resolutionRoot)
+        protected EquatableFactory(IEnumerable<TImplementation> implementations)
         {
-            _dictionary = resolutionRoot.GetAll<TImplementation>().ToDictionary(action => action.Key);
+            _dictionary = implementations.ToDictionary(action => action.Key);
         }
 
         public IReadOnlyCollection<TKey> AvailableKeys => _dictionary.Keys;

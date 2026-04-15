@@ -1,16 +1,20 @@
-using Ninject.Modules;
+using Microsoft.Extensions.DependencyInjection;
 using Notify.Linux.Client;
 using Spotitoast.Linux.Notification;
 using Tmds.DBus;
 
 namespace Spotitoast.Linux.Bootstrap
 {
-    public class BootstrapLinuxModule : NinjectModule
+    public static class BootstrapLinux
     {
-        public override void Load()
+        /// <summary>
+        /// Register Linux-specific services (DBus notifications).
+        /// </summary>
+        public static IServiceCollection AddSpotitoastLinux(this IServiceCollection services)
         {
-            Bind<INotificationClient>().ToMethod(context => new NotificationClient(Connection.Session)).InSingletonScope();
-            Bind<INotificationHandler>().To<NotificationHandler>().InSingletonScope();
+            services.AddSingleton<INotificationClient>(_ => new NotificationClient(Connection.Session));
+            services.AddSingleton<INotificationHandler, NotificationHandler>();
+            return services;
         }
     }
 }

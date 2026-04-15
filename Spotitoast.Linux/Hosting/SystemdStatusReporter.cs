@@ -3,9 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
-using Ninject;
 using Spotitoast.Logic.Business.Player;
 using Spotitoast.Logic.Model.Song;
+
+#nullable enable
 
 namespace Spotitoast.Linux.Hosting
 {
@@ -23,10 +24,10 @@ namespace Spotitoast.Linux.Hosting
         private IDisposable? _trackLikedSubscription;
         private IDisposable? _trackDislikedSubscription;
 
-        public SystemdStatusReporter(IKernel kernel, ISystemdNotifier? systemdNotifier = null)
+        public SystemdStatusReporter(ISpotifyNotifier spotifyNotifier, ISystemdNotifier? systemdNotifier = null)
         {
             _systemdNotifier = systemdNotifier;
-            _spotifyNotifier = kernel.Get<ISpotifyNotifier>();
+            _spotifyNotifier = spotifyNotifier;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -67,7 +68,7 @@ namespace Spotitoast.Linux.Hosting
         private void NotifyStatus(string prefix, ITrack track)
         {
             _systemdNotifier?.Notify(
-                ServiceState.Status($"{prefix}: {track.Name} \u2014 {track.ArtistsDisplay}"));
+                new ServiceState($"STATUS={prefix}: {track.Name} \u2014 {track.ArtistsDisplay}"));
         }
     }
 }

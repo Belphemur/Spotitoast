@@ -3,13 +3,16 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Job.Scheduler.Scheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
-using Ninject;
+using Spotitoast.Linux.Bootstrap;
 using Spotitoast.Linux.Context;
 using Spotitoast.Linux.Hosting;
-using static Spotitoast.Logic.Dependencies.Bootstrap;
+using Spotitoast.Linux.Notification;
+using Spotitoast.Logic.Business.Action;
+using Spotitoast.Logic.Dependencies;
 
 namespace Spotitoast.Linux
 {
@@ -17,8 +20,6 @@ namespace Spotitoast.Linux
     {
         static async Task Main(string[] args)
         {
-            Kernel.Load(AppDomain.CurrentDomain.GetAssemblies());
-
             var mutexName = $"Spotitoast-{Environment.UserName}";
             var mutex = new Mutex(true, @$"Global\{mutexName}", out var createdNew);
             var port = Port();
@@ -45,7 +46,12 @@ namespace Spotitoast.Linux
 
         private static async Task SendClientCommand(string[] args, int port)
         {
-            using var clientContext = Kernel.Get<ClientContext>();
+            var services = new ServiceCollection();
+            services.AddSpotitoastCore();
+            await using var sp = services.BuildServiceProvider();
+
+            var factory = sp.GetRequiredService<IActionFactory>();
+            using var clientContext = new ClientContext(factory);
             await clientContext.ConnectAsync(port);
             await clientContext.SendCommand(args);
         }
@@ -57,21 +63,29 @@ namespace Spotitoast.Linux
             // When launched by systemd the extension sends READY=1,
             // STOPPING=1, STATUS= and WATCHDOG=1 notifications
             // automatically.  Outside systemd it is a harmless no-op.
-            builder.Services.UseSystemd();
+            builder.Services.AddSystemd();
 
-            // Make the Ninject kernel available to hosted services so
-            // all business-logic resolution stays inside Ninject.
-            builder.Services.AddSingleton(Kernel);
+            // Core business-logic services (Spotify, actions, etc.)
+            builder.Services.AddSpotitoastCore();
 
+            // Linux-specific services (DBus notifications)
+            builder.Services.AddSpotitoastLinux();
+
+            // TCP server context
+            builder.Services.AddSingleton<ServerContext>();
+
+            // Hosted services
             builder.Services.AddHostedService(sp =>
                 new SpotitoastService(
-                    sp.GetRequiredService<IKernel>(),
                     sp.GetRequiredService<IHostApplicationLifetime>(),
+                    sp.GetRequiredService<INotificationHandler>(),
+                    sp.GetRequiredService<ServerContext>(),
+                    sp.GetRequiredService<IJobScheduler>(),
                     port));
 
             builder.Services.AddHostedService(sp =>
                 new SystemdStatusReporter(
-                    sp.GetRequiredService<IKernel>(),
+                    sp.GetRequiredService<Logic.Business.Player.ISpotifyNotifier>(),
                     sp.GetService<ISystemdNotifier>()));
 
             await Console.Out.WriteLineAsync($"Running as server on port {port}");

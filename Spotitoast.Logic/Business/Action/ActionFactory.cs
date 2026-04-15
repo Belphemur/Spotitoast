@@ -1,4 +1,4 @@
-﻿using Ninject.Syntax;
+using System.Collections.Generic;
 using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Logic.Framework.Factory;
 
@@ -16,7 +16,7 @@ namespace Spotitoast.Logic.Business.Action
             Skip
         }
 
-        public ActionFactory(IResolutionRoot resolutionRoot) : base(resolutionRoot)
+        public ActionFactory(IEnumerable<IAction> actions) : base(actions)
         {
         }
     }

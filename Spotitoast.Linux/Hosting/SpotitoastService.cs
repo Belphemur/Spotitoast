@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Scheduler;
 using Microsoft.Extensions.Hosting;
-using Ninject;
 using Spotitoast.Linux.Context;
 using Spotitoast.Linux.Notification;
 
@@ -14,14 +13,23 @@ namespace Spotitoast.Linux.Hosting
     /// </summary>
     public class SpotitoastService : BackgroundService
     {
-        private readonly IKernel _kernel;
         private readonly IHostApplicationLifetime _lifetime;
+        private readonly INotificationHandler _notificationHandler;
+        private readonly ServerContext _serverContext;
+        private readonly IJobScheduler _jobScheduler;
         private readonly int _port;
 
-        public SpotitoastService(IKernel kernel, IHostApplicationLifetime lifetime, int port)
+        public SpotitoastService(
+            IHostApplicationLifetime lifetime,
+            INotificationHandler notificationHandler,
+            ServerContext serverContext,
+            IJobScheduler jobScheduler,
+            int port)
         {
-            _kernel = kernel;
             _lifetime = lifetime;
+            _notificationHandler = notificationHandler;
+            _serverContext = serverContext;
+            _jobScheduler = jobScheduler;
             _port = port;
         }
 
@@ -29,14 +37,13 @@ namespace Spotitoast.Linux.Hosting
         {
             // Wire notification subscriptions before the host signals READY=1
             // so systemd considers the service fully operational.
-            _kernel.Get<INotificationHandler>().RegisterNotifications();
+            _notificationHandler.RegisterNotifications();
             return base.StartAsync(cancellationToken);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _kernel.Get<ServerContext>()
-                         .EventLoopStartAsync(_port, stoppingToken);
+            await _serverContext.EventLoopStartAsync(_port, stoppingToken);
 
             // The event loop exits when the cancellation token fires or when
             // a client sends the Exit command.  In either case, ask the host
@@ -47,7 +54,7 @@ namespace Spotitoast.Linux.Hosting
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
             await base.StopAsync(cancellationToken);
-            await _kernel.Get<IJobScheduler>().StopAsync(cancellationToken);
+            await _jobScheduler.StopAsync(cancellationToken);
         }
     }
 }
