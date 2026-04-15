@@ -2,8 +2,35 @@
 Type=Application
 Encoding=UTF-8
 Name=Spotitoast
-Comment=Use command line to control Spotify with nice DBUS notification
+Comment=Control Spotify and notifications from your desktop
 Exec=/opt/spotitoast/Spotitoast.Linux
 Icon=Spotitoast
 Terminal=false
 X-GNOME-Autostart-enabled=true
+Categories=AudioVideo;Player;
+Actions=TogglePlayback;Like;Dislike;Skip;CurrentlyPlaying;
+
+[Desktop Action TogglePlayback]
+Name=Toggle Playback
+Exec=/opt/spotitoast/Spotitoast.Linux TogglePlayback
+X-KDE-Shortcuts=Ctrl+Home
+
+[Desktop Action Like]
+Name=Like Current Track
+Exec=/opt/spotitoast/Spotitoast.Linux Like
+X-KDE-Shortcuts=Ctrl+PgUp
+
+[Desktop Action Dislike]
+Name=Dislike Current Track
+Exec=/opt/spotitoast/Spotitoast.Linux Dislike
+X-KDE-Shortcuts=Ctrl+PgDown
+
+[Desktop Action Skip]
+Name=Skip Track
+Exec=/opt/spotitoast/Spotitoast.Linux Skip
+X-KDE-Shortcuts=Ctrl+Right
+
+[Desktop Action CurrentlyPlaying]
+Name=Show Current Track
+Exec=/opt/spotitoast/Spotitoast.Linux CurrentlyPlaying
+X-KDE-Shortcuts=Ctrl+End
