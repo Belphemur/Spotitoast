@@ -71,7 +71,7 @@ namespace Spotitoast.Linux.Notification
                                 {
                                     Summary = $"{(track.IsLoved ? @"💖 " : null)}{track.Name}",
                                     Body = $"{track.Album.Name} ({track.Album.ReleaseDate.Year})\n{track.ArtistsDisplay}",
-                                    Expiration = TimeSpan.FromSeconds(10),
+                                    Expiration = TimeSpan.FromSeconds(5),
                                     Image = resizeImage
                                 };
                                 SetActions(track, notificationData);
