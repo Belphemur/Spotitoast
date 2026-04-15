@@ -19,7 +19,7 @@ applyTo: "**/*.cs"
 ## HTTP Clients
 
 - Use `IHttpClientFactory` (registered via `services.AddHttpClient(...)`) for all outbound HTTP calls. Do not create static or long-lived `HttpClient` instances.
-- The `ImageDownloader` service in `Spotitoast.Logic/Framework/Extensions/UriExtension.cs` demonstrates the pattern: it receives `IHttpClientFactory` and `IMemoryCache` via constructor injection.
+- The `ImageDownloader` service in `Spotitoast.Logic/Framework/Extensions/ImageDownloader.cs` demonstrates the pattern: it receives `IHttpClientFactory` and `IMemoryCache` via constructor injection.
 
 ## Linux & systemd
 

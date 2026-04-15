@@ -53,6 +53,7 @@ namespace Spotitoast.Logic.Dependencies
 
             // HTTP + image downloading
             services.AddHttpClient("ImageDownloader");
+            services.AddMemoryCache();
             services.AddSingleton<ImageDownloader>();
 
             return services;
