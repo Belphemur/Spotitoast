@@ -67,7 +67,7 @@ public class ActionKeyTests
         ActionKey key = "TestAction";
 
         // String is implicitly converted to ActionKey via the implicit operator
-        Assert.True(key.Equals("TestAction"));
+        Assert.True(key == "TestAction");
     }
 
     [Fact]
