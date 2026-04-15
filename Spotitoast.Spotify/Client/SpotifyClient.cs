@@ -120,6 +120,7 @@ namespace Spotitoast.Spotify.Client
         {
             var track = _playbackContext?.Item as FullTrack;
             var trackId = track?.Id;
+            var trackUri = GetTrackUri(trackId);
 
             Trace.WriteLine($"Loving ${trackId}.");
             var loveState = await CheckLoveState(trackId);
@@ -130,7 +131,7 @@ namespace Spotitoast.Spotify.Client
 
             try
             {
-                var result = await _spotifyWebClient.Library.SaveTracks(new LibrarySaveTracksRequest(new[] {trackId}));
+                var result = await _spotifyWebClient.Library.SaveItems(new LibrarySaveItemsRequest(new[] { trackUri }));
                 if (!result)
                 {
                     return ActionResult.Error;
@@ -172,7 +173,8 @@ namespace Spotitoast.Spotify.Client
 
             try
             {
-                var isLovedResult = await _spotifyWebClient.Library.CheckTracks(new LibraryCheckTracksRequest(new[] {trackId}));
+                var trackUri = GetTrackUri(trackId);
+                var isLovedResult = await _spotifyWebClient.Library.CheckItems(new LibraryCheckItemsRequest(new[] { trackUri }));
                 return isLovedResult.First() ? ActionResult.AlreadyLiked : ActionResult.NotLiked;
             }
             catch (APIException e)
@@ -190,6 +192,7 @@ namespace Spotitoast.Spotify.Client
         {
             var track = _playbackContext?.Item as FullTrack;
             var trackId = track?.Id;
+            var trackUri = GetTrackUri(trackId);
             Trace.WriteLine($"Dislinking ${trackId}.");
             var resultSkip = await SkipTrack();
 
@@ -208,7 +211,7 @@ namespace Spotitoast.Spotify.Client
 
             try
             {
-                var result = await _spotifyWebClient.Library.RemoveTracks(new LibraryRemoveTracksRequest(new[] {trackId}));
+                var result = await _spotifyWebClient.Library.RemoveItems(new LibraryRemoveItemsRequest(new[] { trackUri }));
                 if (!result)
                 {
                     return ActionResult.NotLiked;
@@ -221,6 +224,11 @@ namespace Spotitoast.Spotify.Client
             }
 
             return ActionResult.Success;
+        }
+
+        private static string GetTrackUri(string trackId)
+        {
+            return $"spotify:track:{trackId}";
         }
 
         /// <summary>
