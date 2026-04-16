@@ -11,14 +11,9 @@ namespace Spotitoast.Spotify.Client.Auth
 {
     internal class SpotifyAuth
     {
-        internal class TokenUpdatedEventArg : EventArgs
+        internal class TokenUpdatedEventArg(SpotifyAuthConfiguration.Token newToken) : EventArgs
         {
-            public TokenUpdatedEventArg(SpotifyAuthConfiguration.Token newToken)
-            {
-                NewToken = newToken;
-            }
-
-            public SpotifyAuthConfiguration.Token NewToken { get; }
+            public SpotifyAuthConfiguration.Token NewToken { get; } = newToken;
         }
 
         private readonly SpotifyAuthConfiguration _config;

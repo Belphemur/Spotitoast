@@ -4,12 +4,8 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action.Implementation
 {
-    public class SkipTrack : Action.BaseAction
+    public class SkipTrack(SpotifyClient client) : Action.BaseAction(client)
     {
-        public SkipTrack(SpotifyClient client) : base(client)
-        {
-        }
-
         public override Task<ActionResult> Execute()
         {
             return _client.SkipTrack();

@@ -7,16 +7,8 @@ using Job.Scheduler.Job.Exception;
 
 namespace Spotitoast.Spotify.Client.Job
 {
-    public class CheckCurrentlyPlayingJob : IRecurringJob
+    public class CheckCurrentlyPlayingJob(SpotifyClient client, TimeSpan delay) : IRecurringJob
     {
-        private readonly SpotifyClient _client;
-
-        public CheckCurrentlyPlayingJob(SpotifyClient client, TimeSpan delay)
-        {
-            _client    = client;
-            Delay = delay;
-        }
-
         public IRetryAction FailRule { get; } = new AlwaysRetry();
         public TimeSpan? MaxRuntime { get; } = null;
 
@@ -25,7 +17,7 @@ namespace Spotitoast.Spotify.Client.Job
             if (cancellationToken.IsCancellationRequested)
                 return Task.CompletedTask;
 
-            return _client.CheckCurrentPlayedTrackWithAutoRefresh();
+            return client.CheckCurrentPlayedTrackWithAutoRefresh();
         }
 
         public Task OnFailure(JobException exception)
@@ -33,6 +25,6 @@ namespace Spotitoast.Spotify.Client.Job
             return Task.CompletedTask;
         }
 
-        public TimeSpan Delay { get; }
+        public TimeSpan Delay { get; } = delay;
     }
 }

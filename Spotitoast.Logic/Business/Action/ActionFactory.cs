@@ -4,7 +4,8 @@ using Spotitoast.Logic.Framework.Factory;
 
 namespace Spotitoast.Logic.Business.Action
 {
-    public class ActionFactory : EquatableFactory<ActionKey, IAction>, IActionFactory
+    public class ActionFactory(IEnumerable<IAction> actions)
+        : EquatableFactory<ActionKey, IAction>(actions), IActionFactory
     {
        public enum PlayerAction
         {
@@ -14,10 +15,6 @@ namespace Spotitoast.Logic.Business.Action
             CurrentlyPlaying,
             Exit,
             Skip
-        }
-
-        public ActionFactory(IEnumerable<IAction> actions) : base(actions)
-        {
         }
     }
 }

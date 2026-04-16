@@ -4,12 +4,8 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action.Implementation
 {
-    public class TogglePlayback : BaseAction
+    public class TogglePlayback(SpotifyClient client) : BaseAction(client)
     {
-        public TogglePlayback(SpotifyClient client) : base(client)
-        {
-        }
-
         public override async Task<ActionResult> Execute()
         {
             return _client.IsPlaying ? await _client.Pause() : await _client.Resume();

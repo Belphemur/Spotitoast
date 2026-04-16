@@ -7,20 +7,13 @@ namespace Spotitoast.Logic.Tests.Business.Command;
 
 public class CommandExecutorTests
 {
-    private sealed class FakeAction : IAction
+    private sealed class FakeAction(ActionKey key, string label, ActionResult result = ActionResult.Success)
+        : IAction
     {
-        public ActionKey Key { get; }
-        public string Label { get; }
-        private readonly ActionResult _result;
+        public ActionKey Key { get; } = key;
+        public string Label { get; } = label;
 
-        public FakeAction(ActionKey key, string label, ActionResult result = ActionResult.Success)
-        {
-            Key = key;
-            Label = label;
-            _result = result;
-        }
-
-        public Task<ActionResult> Execute() => Task.FromResult(_result);
+        public Task<ActionResult> Execute() => Task.FromResult(result);
     }
 
     private static CommandExecutor CreateExecutor(params FakeAction[] actions)

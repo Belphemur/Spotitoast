@@ -4,24 +4,14 @@ namespace Spotitoast.Logic.Tests.Framework.Factory;
 
 public class EquatableFactoryTests
 {
-    private sealed class StringKeyImpl : IEquatableImplementation<string>
+    private sealed class StringKeyImpl(string key, string value) : IEquatableImplementation<string>
     {
-        public string Key { get; }
-        public string Value { get; }
-
-        public StringKeyImpl(string key, string value)
-        {
-            Key = key;
-            Value = value;
-        }
+        public string Key { get; } = key;
+        public string Value { get; } = value;
     }
 
-    private sealed class TestFactory : EquatableFactory<string, StringKeyImpl>
-    {
-        public TestFactory(IEnumerable<StringKeyImpl> implementations) : base(implementations)
-        {
-        }
-    }
+    private sealed class TestFactory(IEnumerable<StringKeyImpl> implementations)
+        : EquatableFactory<string, StringKeyImpl>(implementations);
 
     private static TestFactory CreateFactory(params StringKeyImpl[] items)
     {

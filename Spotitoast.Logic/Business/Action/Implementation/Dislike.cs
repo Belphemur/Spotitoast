@@ -4,12 +4,8 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action.Implementation
 {
-    public class Dislike : BaseAction
+    public class Dislike(SpotifyClient client) : BaseAction(client)
     {
-        public Dislike(SpotifyClient client) : base(client)
-        {
-        }
-
         public override async Task<ActionResult> Execute()
         {
             return await _client.DislikePlayedTrack();

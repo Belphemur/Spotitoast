@@ -5,14 +5,9 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action
 {
-    public abstract class BaseAction : IAction
+    public abstract class BaseAction(SpotifyClient client) : IAction
     {
-        protected readonly SpotifyClient _client;
-
-        protected BaseAction(SpotifyClient client)
-        {
-            _client = client;
-        }
+        protected readonly SpotifyClient _client = client;
 
         public abstract Task<ActionResult> Execute();
         public abstract string Label { get; }

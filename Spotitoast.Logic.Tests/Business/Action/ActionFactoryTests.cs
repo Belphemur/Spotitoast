@@ -6,16 +6,10 @@ namespace Spotitoast.Logic.Tests.Business.Action;
 
 public class ActionFactoryTests
 {
-    private sealed class FakeAction : IAction
+    private sealed class FakeAction(ActionKey key, string label) : IAction
     {
-        public ActionKey Key { get; }
-        public string Label { get; }
-
-        public FakeAction(ActionKey key, string label)
-        {
-            Key = key;
-            Label = label;
-        }
+        public ActionKey Key { get; } = key;
+        public string Label { get; } = label;
 
         public Task<ActionResult> Execute() => Task.FromResult(ActionResult.Success);
     }

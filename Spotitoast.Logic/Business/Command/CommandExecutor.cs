@@ -6,19 +6,12 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Command
 {
-    public class CommandExecutor : ICommandExecutor
+    public class CommandExecutor(IActionFactory actionFactory) : ICommandExecutor
     {
-        private readonly IActionFactory _actionFactory;
-
-        public CommandExecutor(IActionFactory actionFactory)
-        {
-            _actionFactory = actionFactory;
-        }
-
         /// <summary>
         /// What are the available commands
         /// </summary>
-        public IReadOnlyCollection<ActionKey> AvailableCommands => _actionFactory.AvailableKeys;
+        public IReadOnlyCollection<ActionKey> AvailableCommands => actionFactory.AvailableKeys;
 
         /// <summary>
         /// Parse the command
@@ -26,12 +19,12 @@ namespace Spotitoast.Logic.Business.Command
         public ActionKey? ParseCommand(string cmd)
         {
             ActionKey actionKey = cmd;
-            return _actionFactory.ContainsKey(actionKey) ? actionKey : (ActionKey?) null;
+            return actionFactory.ContainsKey(actionKey) ? actionKey : (ActionKey?) null;
         }
 
         /// <summary>
         /// Execute the command
         /// </summary>
-        public Task<ActionResult> Execute(ActionKey action) => _actionFactory.Get(action).Execute();
+        public Task<ActionResult> Execute(ActionKey action) => actionFactory.Get(action).Execute();
     }
 }

@@ -9,19 +9,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Spotitoast.Logic.Framework.Extensions
 {
-    public class ImageDownloader
+    public class ImageDownloader(
+        IHttpClientFactory httpClientFactory,
+        IMemoryCache memoryCache,
+        ILogger<ImageDownloader> logger)
     {
-        private readonly IMemoryCache _memoryCache;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<ImageDownloader> _logger;
         private readonly ConcurrentDictionary<Uri, Lazy<Task<AnyBitmap>>> _inFlightDownloads = new();
-
-        public ImageDownloader(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<ImageDownloader> logger)
-        {
-            _httpClientFactory = httpClientFactory;
-            _memoryCache = memoryCache;
-            _logger = logger;
-        }
 
         /// <summary>
         /// Download in memory the image and return it as object.
@@ -31,7 +24,7 @@ namespace Spotitoast.Logic.Framework.Extensions
         /// <returns></returns>
         public Task<AnyBitmap> DownloadImage(Uri uri)
         {
-            if (_memoryCache.TryGetValue(uri, out byte[] imageBytes))
+            if (memoryCache.TryGetValue(uri, out byte[] imageBytes))
             {
                 return Task.FromResult(AnyBitmap.FromBytes(imageBytes));
             }
@@ -45,12 +38,12 @@ namespace Spotitoast.Logic.Framework.Extensions
         {
             try
             {
-                using var client = _httpClientFactory.CreateClient("ImageDownloader");
+                using var client = httpClientFactory.CreateClient("ImageDownloader");
                 using var response = await client.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
                 var imageBytes = await response.Content.ReadAsByteArrayAsync();
 
-                using var entry = _memoryCache.CreateEntry(uri);
+                using var entry = memoryCache.CreateEntry(uri);
                 entry.SlidingExpiration = TimeSpan.FromHours(1);
                 entry.Value = imageBytes;
 
@@ -58,7 +51,7 @@ namespace Spotitoast.Logic.Framework.Extensions
             }
             catch (HttpRequestException e)
             {
-                _logger.LogWarning(e, "Failed to download image from {Uri}", uri);
+                logger.LogWarning(e, "Failed to download image from {Uri}", uri);
                 return new AnyBitmap(15, 15);
             }
             finally

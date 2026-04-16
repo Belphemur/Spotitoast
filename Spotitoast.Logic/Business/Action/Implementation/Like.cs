@@ -4,12 +4,8 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action.Implementation
 {
-    public class Like : BaseAction
+    public class Like(SpotifyClient client) : BaseAction(client)
     {
-        public Like(SpotifyClient client) : base(client)
-        {
-        }
-
         public override async Task<ActionResult> Execute()
         {
             return await _client.LikePlayedTrack();

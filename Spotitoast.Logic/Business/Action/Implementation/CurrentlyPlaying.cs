@@ -4,12 +4,8 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Logic.Business.Action.Implementation
 {
-    public class CurrentlyPlaying : BaseAction
+    public class CurrentlyPlaying(SpotifyClient client) : BaseAction(client)
     {
-        public CurrentlyPlaying(SpotifyClient client) : base(client)
-        {
-        }
-
         public override Task<ActionResult> Execute()
         {
             return _client.ForceCheckCurrentlyPlaying();
