@@ -11,30 +11,18 @@ namespace Spotitoast.Linux.Server.Hosting
     /// Background service that runs the Spotitoast named-pipe server event loop
     /// and registers notification handlers for the Linux desktop.
     /// </summary>
-    public class SpotitoastService : BackgroundService
+    public class SpotitoastService(
+        IHostApplicationLifetime lifetime,
+        INotificationHandler notificationHandler,
+        ServerContext serverContext,
+        IJobScheduler jobScheduler)
+        : BackgroundService
     {
-        private readonly IHostApplicationLifetime _lifetime;
-        private readonly INotificationHandler _notificationHandler;
-        private readonly ServerContext _serverContext;
-        private readonly IJobScheduler _jobScheduler;
-
-        public SpotitoastService(
-            IHostApplicationLifetime lifetime,
-            INotificationHandler notificationHandler,
-            ServerContext serverContext,
-            IJobScheduler jobScheduler)
-        {
-            _lifetime = lifetime;
-            _notificationHandler = notificationHandler;
-            _serverContext = serverContext;
-            _jobScheduler = jobScheduler;
-        }
-
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             // Wire notification subscriptions before the host signals READY=1
             // so systemd considers the service fully operational.
-            _notificationHandler.RegisterNotifications();
+            notificationHandler.RegisterNotifications();
             return base.StartAsync(cancellationToken);
         }
 
@@ -42,7 +30,7 @@ namespace Spotitoast.Linux.Server.Hosting
         {
             await Task.Factory
                 .StartNew(
-                    () => _serverContext.EventLoopStartAsync(stoppingToken),
+                    () => serverContext.EventLoopStartAsync(stoppingToken),
                     stoppingToken,
                     TaskCreationOptions.LongRunning,
                     TaskScheduler.Default)
@@ -51,14 +39,14 @@ namespace Spotitoast.Linux.Server.Hosting
             // The event loop exits when the cancellation token fires or when
             // a client sends the Exit command.  In either case, ask the host
             // to tear down gracefully.
-            _lifetime.StopApplication();
+            lifetime.StopApplication();
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            _serverContext.RequestShutdown();
+            serverContext.RequestShutdown();
             await base.StopAsync(cancellationToken);
-            await _jobScheduler.StopAsync(cancellationToken);
+            await jobScheduler.StopAsync(cancellationToken);
         }
     }
 }

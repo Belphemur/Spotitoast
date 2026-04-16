@@ -16,34 +16,27 @@ namespace Spotitoast.Linux.Server.Hosting
     /// <c>systemctl --user status spotitoast</c> shows live information.
     /// When the application is not running under systemd the reporter is a no-op.
     /// </summary>
-    public class SystemdStatusReporter : IHostedService, IDisposable
+    public class SystemdStatusReporter(ISpotifyNotifier spotifyNotifier, ISystemdNotifier? systemdNotifier = null)
+        : IHostedService, IDisposable
     {
-        private readonly ISystemdNotifier? _systemdNotifier;
-        private readonly ISpotifyNotifier _spotifyNotifier;
         private IDisposable? _trackPlayedSubscription;
         private IDisposable? _trackLikedSubscription;
         private IDisposable? _trackDislikedSubscription;
 
-        public SystemdStatusReporter(ISpotifyNotifier spotifyNotifier, ISystemdNotifier? systemdNotifier = null)
-        {
-            _systemdNotifier = systemdNotifier;
-            _spotifyNotifier = spotifyNotifier;
-        }
-
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (_systemdNotifier is null || !SystemdHelpers.IsSystemdService())
+            if (systemdNotifier is null || !SystemdHelpers.IsSystemdService())
             {
                 return Task.CompletedTask;
             }
 
-            _trackPlayedSubscription = _spotifyNotifier.TrackPlayed
+            _trackPlayedSubscription = spotifyNotifier.TrackPlayed
                 .Subscribe(track => NotifyStatus("Playing", track));
 
-            _trackLikedSubscription = _spotifyNotifier.TrackLiked
+            _trackLikedSubscription = spotifyNotifier.TrackLiked
                 .Subscribe(track => NotifyStatus("Liked", track));
 
-            _trackDislikedSubscription = _spotifyNotifier.TrackDisliked
+            _trackDislikedSubscription = spotifyNotifier.TrackDisliked
                 .Subscribe(track => NotifyStatus("Disliked", track));
 
             return Task.CompletedTask;
@@ -67,7 +60,7 @@ namespace Spotitoast.Linux.Server.Hosting
 
         private void NotifyStatus(string prefix, ITrack track)
         {
-            _systemdNotifier?.Notify(
+            systemdNotifier?.Notify(
                 new ServiceState($"STATUS={prefix}: {track.Name} \u2014 {track.ArtistsDisplay}"));
         }
     }

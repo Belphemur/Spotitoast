@@ -10,19 +10,12 @@ using Spotitoast.Logic.Model.Song;
 
 namespace Spotitoast.Linux.Server.Notification
 {
-    public class NotificationHandler : INotificationHandler
+    public class NotificationHandler(
+        ISpotifyNotifier spotifyNotifier,
+        INotificationClient notificationClient,
+        ICommandExecutor commandExecutor)
+        : INotificationHandler
     {
-        private readonly ISpotifyNotifier _spotifyNotifier;
-        private readonly INotificationClient _notificationClient;
-        private readonly ICommandExecutor _commandExecutor;
-
-        public NotificationHandler(ISpotifyNotifier spotifyNotifier, INotificationClient notificationClient, ICommandExecutor commandExecutor)
-        {
-            _spotifyNotifier = spotifyNotifier;
-            _notificationClient = notificationClient;
-            _commandExecutor = commandExecutor;
-        }
-
         /// <summary>
         /// Link different event (Like, track played etc ...) to a notification
         /// </summary>
@@ -34,9 +27,9 @@ namespace Spotitoast.Linux.Server.Notification
 
         private void RegisterLikedDisliked()
         {
-            _spotifyNotifier.TrackLiked.Select(track => Observable.FromAsync(async () =>
+            spotifyNotifier.TrackLiked.Select(track => Observable.FromAsync(async () =>
                             {
-                                await _notificationClient.NotifyAsync(new SpotitoastNotification
+                                await notificationClient.NotifyAsync(new SpotitoastNotification
                                 {
                                     Summary = "You liked 💖",
                                     Body = $@"{track.Name} - {track.ArtistsDisplay}",
@@ -46,10 +39,10 @@ namespace Spotitoast.Linux.Server.Notification
                             .Concat()
                             .Subscribe();
 
-            _spotifyNotifier.TrackDisliked
+            spotifyNotifier.TrackDisliked
                             .Select(track => Observable.FromAsync(async () =>
                             {
-                                await _notificationClient.NotifyAsync(new SpotitoastNotification
+                                await notificationClient.NotifyAsync(new SpotitoastNotification
                                 {
                                     Summary = "You disliked 💔",
                                     Body = $@"{track.Name} - {track.ArtistsDisplay}",
@@ -62,7 +55,7 @@ namespace Spotitoast.Linux.Server.Notification
 
         private void RegisterTrackPlayed()
         {
-            _spotifyNotifier.TrackPlayed
+            spotifyNotifier.TrackPlayed
                             .Select(track => Observable.FromAsync(async () =>
                             {
                                 var albumArt = await track.Album.Art;
@@ -76,7 +69,7 @@ namespace Spotitoast.Linux.Server.Notification
                                 };
                                 SetActions(track, notificationData);
 
-                                await _notificationClient.NotifyAsync(notificationData);
+                                await notificationClient.NotifyAsync(notificationData);
                             }))
                             .Concat()
                             .Subscribe();
@@ -92,7 +85,7 @@ namespace Spotitoast.Linux.Server.Notification
                     {
                         Key = ActionFactory.PlayerAction.Like.ToString(),
                         Label = " 💖 Like",
-                        OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Like)
+                        OnActionCalled = () => commandExecutor.Execute(ActionFactory.PlayerAction.Like)
                     }
                 };
             }
@@ -104,7 +97,7 @@ namespace Spotitoast.Linux.Server.Notification
                     {
                         Key = ActionFactory.PlayerAction.Dislike.ToString(),
                         Label = "💔 Dislike",
-                        OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Dislike)
+                        OnActionCalled = () => commandExecutor.Execute(ActionFactory.PlayerAction.Dislike)
                     },
                 };
             }
@@ -113,7 +106,7 @@ namespace Spotitoast.Linux.Server.Notification
             {
                 Key = ActionFactory.PlayerAction.Skip.ToString(),
                 Label = "⏭️Skip",
-                OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
+                OnActionCalled = () => commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
             })
                                                        .ToArray();
         }

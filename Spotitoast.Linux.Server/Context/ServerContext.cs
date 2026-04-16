@@ -15,20 +15,13 @@ using Spotitoast.Spotify.Model;
 
 namespace Spotitoast.Linux.Server.Context
 {
-    public class ServerContext
+    public class ServerContext(
+        ICommandExecutor commandExecutor,
+        INotificationClient notificationClient,
+        ILogger<ServerContext> logger)
     {
-        private readonly INotificationClient _notificationClient;
-        private readonly ICommandExecutor _commandExecutor;
-        private readonly ILogger<ServerContext> _logger;
         private readonly object _pipeServerLock = new object();
         private NamedPipeServerStream? _pipeServer;
-
-        public ServerContext(ICommandExecutor commandExecutor, INotificationClient notificationClient, ILogger<ServerContext> logger)
-        {
-            _commandExecutor = commandExecutor;
-            _notificationClient = notificationClient;
-            _logger = logger;
-        }
 
         public async Task EventLoopStartAsync(CancellationToken token)
         {
@@ -68,7 +61,7 @@ namespace Spotitoast.Linux.Server.Context
                 }
                 catch (IOException e)
                 {
-                    _logger.LogDebug(e, "Client disconnected unexpectedly.");
+                    logger.LogDebug(e, "Client disconnected unexpectedly.");
                 }
                 catch (ObjectDisposedException) when (token.IsCancellationRequested)
                 {
@@ -96,15 +89,15 @@ namespace Spotitoast.Linux.Server.Context
 
         private async Task<ActionResult> HandleCommand(string cmd)
         {
-            _logger.LogInformation("Received client command {Command}", cmd);
+            logger.LogInformation("Received client command {Command}", cmd);
 
-            var action = _commandExecutor.ParseCommand(cmd);
+            var action = commandExecutor.ParseCommand(cmd);
             if (!action.HasValue)
             {
-                var availableCommands = string.Join(", ", _commandExecutor.AvailableCommands);
-                _logger.LogWarning("Unknown client command {Command}. Available commands: {AvailableCommands}", cmd, availableCommands);
+                var availableCommands = string.Join(", ", commandExecutor.AvailableCommands);
+                logger.LogWarning("Unknown client command {Command}. Available commands: {AvailableCommands}", cmd, availableCommands);
 
-                await _notificationClient.NotifyAsync(new SpotitoastNotification
+                await notificationClient.NotifyAsync(new SpotitoastNotification
                 {
                     Body = $"Command: {cmd}\nAvailable: {availableCommands}",
                     Summary = "Spotitoast Unknown command"
@@ -113,27 +106,27 @@ namespace Spotitoast.Linux.Server.Context
             }
 
             var result = await ExecuteCommand(action.Value);
-            _logger.LogInformation("Command {Command} completed with {Result}", cmd, result);
+            logger.LogInformation("Command {Command} completed with {Result}", cmd, result);
 
             return result;
         }
 
         private async Task<ActionResult> ExecuteCommand(ActionKey action)
         {
-            var result = await _commandExecutor.Execute(action);
+            var result = await commandExecutor.Execute(action);
             switch (result)
             {
                 case ActionResult.Success:
                     break;
                 case ActionResult.NoTrackPlayed:
-                    await _notificationClient.NotifyAsync(new SpotitoastNotification
+                    await notificationClient.NotifyAsync(new SpotitoastNotification
                     {
                         Body = $"No track playing",
                         Summary = "Spotitoast"
                     });
                     break;
                 case ActionResult.AlreadyLiked:
-                    await _notificationClient.NotifyAsync(new SpotitoastNotification
+                    await notificationClient.NotifyAsync(new SpotitoastNotification
                     {
                         Body = $"Track already liked",
                         Summary = "Spotitoast"
@@ -142,7 +135,7 @@ namespace Spotitoast.Linux.Server.Context
                 case ActionResult.NotLiked:
                     break;
                 case ActionResult.Error:
-                    _logger.LogError("Couldn't execute action {Action}", action);
+                    logger.LogError("Couldn't execute action {Action}", action);
                     break;
                 case ActionResult.ExitApplication:
                     break;

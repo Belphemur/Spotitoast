@@ -201,7 +201,7 @@ begin
 end >"$WORK_DIR/PKGBUILD"
 or die 'Failed to write PKGBUILD'
 
-set -l makepkg_args --force --clean
+set -l makepkg_args --force --clean --cleanbuild
 if test "$SYNC_DEPS" = true
     set -a makepkg_args --syncdeps --noconfirm
 end
