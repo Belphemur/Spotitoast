@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IronSoftware.Drawing;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace Spotitoast.Logic.Framework.Extensions
 {
@@ -12,12 +13,14 @@ namespace Spotitoast.Logic.Framework.Extensions
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<ImageDownloader> _logger;
         private readonly ConcurrentDictionary<Uri, Lazy<Task<AnyBitmap>>> _inFlightDownloads = new();
 
-        public ImageDownloader(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+        public ImageDownloader(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<ImageDownloader> logger)
         {
             _httpClientFactory = httpClientFactory;
             _memoryCache = memoryCache;
+            _logger = logger;
         }
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace Spotitoast.Logic.Framework.Extensions
             }
             catch (HttpRequestException e)
             {
-                await Console.Error.WriteLineAsync(e.ToString());
+                _logger.LogWarning(e, "Failed to download image from {Uri}", uri);
                 return new AnyBitmap(15, 15);
             }
             finally

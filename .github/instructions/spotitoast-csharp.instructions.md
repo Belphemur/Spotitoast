@@ -19,6 +19,7 @@ applyTo: "**/*.cs"
 ## Dependency Injection
 
 - The repository uses `Microsoft.Extensions.DependencyInjection` (MEDI) for all DI wiring. The older Ninject container has been fully removed.
+- Use `Microsoft.Extensions.Logging` for application diagnostics. Constructor-inject `ILogger<T>` into services and use host-created or bootstrap-created loggers in entry points instead of writing directly to `Console` or `Trace` for operational logs.
 - Core service registrations live in `Spotitoast.Logic/Dependencies/Bootstrap.cs` via the `AddSpotitoastCore()` extension method on `IServiceCollection`.
 - Linux-specific registrations live in `Spotitoast.Linux.Server/Bootstrap/BootstrapLinuxModule.cs` via `AddSpotitoastLinux()`.
 - When adding a new service, register it in the appropriate `IServiceCollection` extension method rather than resolving it manually or using service locators.
