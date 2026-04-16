@@ -1,27 +1,19 @@
 using System;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Spotitoast.Shared.Ipc;
 
 /// <summary>
-/// Shared IPC constants and port computation used by both server and CLI.
-/// The port is deterministically derived from the current username so
-/// multiple users on the same host do not collide.
+/// Shared IPC constants used by both server and CLI.
+/// Communication uses a named pipe unique to the current user.
 /// </summary>
 public static class IpcConstants
 {
     public const int BufferSize = 256;
 
     /// <summary>
-    /// Compute the deterministic localhost port for the current user.
+    /// The named pipe name, unique per user, used for server/client IPC.
     /// </summary>
-    public static int Port()
-    {
-        var hashed = MD5.HashData(Encoding.UTF8.GetBytes(Environment.UserName));
-        var portOffset = BitConverter.ToUInt32(hashed, 0);
-        return 20000 + (int)(portOffset % 1000u);
-    }
+    public static string PipeName => $"spotitoast-{Environment.UserName}";
 
     /// <summary>
     /// The named mutex that ensures only one server instance runs per user.

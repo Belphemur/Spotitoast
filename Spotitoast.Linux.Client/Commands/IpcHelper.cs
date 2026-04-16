@@ -1,4 +1,4 @@
-using System.Net.Sockets;
+using System.IO;
 using Spectre.Console;
 using Spotitoast.Shared;
 using Spotitoast.Shared.Ipc;
@@ -16,14 +16,12 @@ internal static class IpcHelper
     /// </summary>
     public static async Task<int> SendAsync(PlayerCommand command, CancellationToken ct = default)
     {
-        var port = IpcConstants.Port();
-
         using var client = new IpcClient();
         try
         {
-            await client.ConnectAsync(port, ct);
+            await client.ConnectAsync(ct);
         }
-        catch (SocketException)
+        catch (Exception) when (!ct.IsCancellationRequested)
         {
             AnsiConsole.MarkupLine("[red]Could not connect to the Spotitoast server.[/]");
             AnsiConsole.MarkupLine("[dim]Is the service running? Start it with:[/]  systemctl --user start spotitoast");
@@ -70,14 +68,13 @@ internal static class IpcHelper
     /// </summary>
     public static async Task<bool> IsServerRunningAsync(CancellationToken ct = default)
     {
-        var port = IpcConstants.Port();
         using var client = new IpcClient();
         try
         {
-            await client.ConnectAsync(port, ct);
+            await client.ConnectAsync(ct);
             return true;
         }
-        catch (SocketException)
+        catch (Exception) when (!ct.IsCancellationRequested)
         {
             return false;
         }

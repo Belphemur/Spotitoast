@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using Job.Scheduler.Scheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
@@ -19,8 +18,6 @@ if (!createdNew)
     return 1;
 }
 
-var port = IpcConstants.Port();
-
 var builder = Host.CreateApplicationBuilder(args);
 
 // When launched by systemd the extension sends READY=1,
@@ -34,24 +31,18 @@ builder.Services.AddSpotitoastCore();
 // Linux-specific services (DBus notifications)
 builder.Services.AddSpotitoastLinux();
 
-// TCP server context
+// Named-pipe server context
 builder.Services.AddSingleton<ServerContext>();
 
 // Hosted services
-builder.Services.AddHostedService(sp =>
-    new SpotitoastService(
-        sp.GetRequiredService<IHostApplicationLifetime>(),
-        sp.GetRequiredService<INotificationHandler>(),
-        sp.GetRequiredService<ServerContext>(),
-        sp.GetRequiredService<IJobScheduler>(),
-        port));
+builder.Services.AddHostedService<SpotitoastService>();
 
 builder.Services.AddHostedService(sp =>
     new SystemdStatusReporter(
         sp.GetRequiredService<ISpotifyNotifier>(),
         sp.GetService<ISystemdNotifier>()));
 
-await Console.Out.WriteLineAsync($"Running as server on port {port}");
+await Console.Out.WriteLineAsync($"Running as server on pipe '{IpcConstants.PipeName}'");
 
 var host = builder.Build();
 await host.RunAsync();

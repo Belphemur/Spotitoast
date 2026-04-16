@@ -11,10 +11,10 @@ applyTo: "**/*.cs"
 ## Architecture
 
 - The Linux deployment follows a **server / CLI client** split:
-  - **`Spotitoast.Linux.Server`** — Long-running `Host`-based background service. Listens on a localhost TCP port, manages Spotify polling, and sends D-Bus notifications. Launched via systemd (`Type=notify`).
-  - **`Spotitoast.Linux.Client`** — Lightweight Spectre.Console CLI (`spotitoast`). Connects to the server over TCP and forwards a single command. Used by the `.desktop` file actions and by users directly.
-  - **`Spotitoast.Shared`** — Contains `IpcConstants` (deterministic port computation, mutex name), `IpcClient` (TCP helper), and `PlayerCommand` enum. Referenced by both server and client.
-- The deterministic TCP port is computed from the current username via `IpcConstants.Port()` in `Spotitoast.Shared`.
+  - **`Spotitoast.Linux.Server`** — Long-running `Host`-based background service. Listens on a named pipe, manages Spotify polling, and sends D-Bus notifications. Launched via systemd (`Type=notify`).
+  - **`Spotitoast.Linux.Client`** — Lightweight Spectre.Console CLI (`spotitoast`). Connects to the server over the named pipe and forwards a single command. Used by the `.desktop` file actions and by users directly.
+  - **`Spotitoast.Shared`** — Contains `IpcConstants` (pipe name, mutex name), `IpcClient` (named-pipe helper), and `PlayerCommand` enum. Referenced by both server and client.
+- The named pipe is derived from the current username via `IpcConstants.PipeName` in `Spotitoast.Shared`.
 
 ## Dependency Injection
 
@@ -32,7 +32,7 @@ applyTo: "**/*.cs"
 ## Linux & systemd
 
 - The Linux server uses the .NET Generic Host (`Host.CreateApplicationBuilder`) with `AddSystemd()` for full systemd integration.
-- `Spotitoast.Linux.Server/Hosting/SpotitoastService.cs` is a `BackgroundService` that runs the TCP server event loop and stops the job scheduler on shutdown.
+- `Spotitoast.Linux.Server/Hosting/SpotitoastService.cs` is a `BackgroundService` that runs the named-pipe server event loop and stops the job scheduler on shutdown.
 - `Spotitoast.Linux.Server/Hosting/SystemdStatusReporter.cs` subscribes to `ISpotifyNotifier` track events and pushes `STATUS=` updates to systemd via `ISystemdNotifier`.
 - The systemd unit file (`Spotitoast.Linux.Server/Resources/spotitoast.service`) uses `Type=notify` so the host sends `READY=1` once all hosted services have started, `STOPPING=1` on shutdown, and periodic `WATCHDOG=1` heartbeats.
 
