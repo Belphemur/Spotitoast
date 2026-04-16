@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Notify.Linux.Client;
 using Spotitoast.Linux.Server.Notification;
 using Spotitoast.Logic.Business.Action.Implementation;
@@ -17,12 +18,14 @@ namespace Spotitoast.Linux.Server.Context
         private readonly INotificationHandler _notificationHandler;
         private readonly INotificationClient _notificationClient;
         private readonly ICommandExecutor _commandExecutor;
+        private readonly ILogger<ServerContext> _logger;
 
-        public ServerContext(ICommandExecutor commandExecutor, INotificationHandler notificationHandler, INotificationClient notificationClient)
+        public ServerContext(ICommandExecutor commandExecutor, INotificationHandler notificationHandler, INotificationClient notificationClient, ILogger<ServerContext> logger)
         {
             _commandExecutor = commandExecutor;
             _notificationHandler = notificationHandler;
             _notificationClient = notificationClient;
+            _logger = logger;
         }
 
         public async Task EventLoopStartAsync(CancellationToken token)
@@ -60,9 +63,9 @@ namespace Spotitoast.Linux.Server.Context
                         }
                     }
                 }
-                catch (IOException)
+                catch (IOException e)
                 {
-                    // Client disconnected unexpectedly — loop back and wait for next.
+                    _logger.LogDebug(e, "Client disconnected unexpectedly.");
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
@@ -73,18 +76,26 @@ namespace Spotitoast.Linux.Server.Context
 
         private async Task<ActionResult> HandleCommand(string cmd)
         {
+            _logger.LogInformation("Received client command {Command}", cmd);
+
             var action = _commandExecutor.ParseCommand(cmd);
             if (!action.HasValue)
             {
+                var availableCommands = string.Join(", ", _commandExecutor.AvailableCommands);
+                _logger.LogWarning("Unknown client command {Command}. Available commands: {AvailableCommands}", cmd, availableCommands);
+
                 await _notificationClient.NotifyAsync(new SpotitoastNotification
                 {
-                    Body = $"Command: {cmd}\nAvailable: {string.Join(", ", _commandExecutor.AvailableCommands)}",
+                    Body = $"Command: {cmd}\nAvailable: {availableCommands}",
                     Summary = "Spotitoast Unknown command"
                 });
                 return ActionResult.Error;
             }
 
-            return await ExecuteCommand(action.Value);
+            var result = await ExecuteCommand(action.Value);
+            _logger.LogInformation("Command {Command} completed with {Result}", cmd, result);
+
+            return result;
         }
 
         private async Task<ActionResult> ExecuteCommand(ActionKey action)
@@ -111,7 +122,7 @@ namespace Spotitoast.Linux.Server.Context
                 case ActionResult.NotLiked:
                     break;
                 case ActionResult.Error:
-                    await Console.Out.WriteLineAsync($"Couldn't execute action {action}");
+                    _logger.LogError("Couldn't execute action {Action}", action);
                     break;
                 case ActionResult.ExitApplication:
                     break;

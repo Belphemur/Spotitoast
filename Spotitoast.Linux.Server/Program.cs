@@ -3,6 +3,7 @@ using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
+using Microsoft.Extensions.Logging;
 using Spotitoast.Linux.Server.Bootstrap;
 using Spotitoast.Linux.Server.Context;
 using Spotitoast.Linux.Server.Hosting;
@@ -14,7 +15,9 @@ using Spotitoast.Shared.Ipc;
 using var mutex = new Mutex(true, IpcConstants.MutexName, out var createdNew);
 if (!createdNew)
 {
-    await Console.Error.WriteLineAsync("Another Spotitoast server instance is already running for this user.");
+    using var loggerFactory = LoggerFactory.Create(logging => logging.AddSimpleConsole());
+    var bootstrapLogger = loggerFactory.CreateLogger("Spotitoast.Linux.Server");
+    bootstrapLogger.LogError("Another Spotitoast server instance is already running for this user.");
     return 1;
 }
 
@@ -42,9 +45,9 @@ builder.Services.AddHostedService(sp =>
         sp.GetRequiredService<ISpotifyNotifier>(),
         sp.GetService<ISystemdNotifier>()));
 
-await Console.Out.WriteLineAsync($"Running as server on pipe '{IpcConstants.PipeName}'");
-
 var host = builder.Build();
+var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Spotitoast.Linux.Server");
+logger.LogInformation("Running as server on pipe {PipeName}", IpcConstants.PipeName);
 await host.RunAsync();
 
 return 0;
