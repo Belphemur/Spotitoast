@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,42 +26,41 @@ namespace Spotitoast.Logic.Framework.Extensions
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public async Task<AnyBitmap> DownloadImage(Uri uri)
+        public Task<AnyBitmap> DownloadImage(Uri uri)
         {
             if (_memoryCache.TryGetValue(uri, out byte[] imageBytes))
             {
-                return AnyBitmap.FromBytes(imageBytes);
+                return Task.FromResult(AnyBitmap.FromBytes(imageBytes));
             }
 
             var lazy = _inFlightDownloads.GetOrAdd(uri,
                 u => new Lazy<Task<AnyBitmap>>(() => DownloadImageCore(u), LazyThreadSafetyMode.ExecutionAndPublication));
-            try
-            {
-                return await lazy.Value;
-            }
-            finally
-            {
-                _inFlightDownloads.TryRemove(new KeyValuePair<Uri, Lazy<Task<AnyBitmap>>>(uri, lazy));
-            }
+            return lazy.Value;
         }
 
         private async Task<AnyBitmap> DownloadImageCore(Uri uri)
         {
             try
             {
-                using var entry = _memoryCache.CreateEntry(uri);
-                entry.SlidingExpiration = TimeSpan.FromHours(1);
                 using var client = _httpClientFactory.CreateClient("ImageDownloader");
                 using var response = await client.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
                 var imageBytes = await response.Content.ReadAsByteArrayAsync();
+
+                using var entry = _memoryCache.CreateEntry(uri);
+                entry.SlidingExpiration = TimeSpan.FromHours(1);
                 entry.Value = imageBytes;
+
                 return AnyBitmap.FromBytes(imageBytes);
             }
             catch (HttpRequestException e)
             {
                 await Console.Error.WriteLineAsync(e.ToString());
                 return new AnyBitmap(15, 15);
+            }
+            finally
+            {
+                _inFlightDownloads.TryRemove(uri, out _);
             }
         }
     }
