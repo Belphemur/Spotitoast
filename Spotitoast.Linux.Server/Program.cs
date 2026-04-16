@@ -23,9 +23,8 @@ if (!createdNew)
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// When launched by systemd the extension sends READY=1,
-// STOPPING=1, STATUS= and WATCHDOG=1 notifications
-// automatically.  Outside systemd it is a harmless no-op.
+// Enable integration with systemd notifications. This wires host lifetime
+// readiness/stopping semantics and registers ISystemdNotifier.
 builder.Services.AddSystemd();
 
 // Core business-logic services (Spotify, actions, etc.)
@@ -39,6 +38,7 @@ builder.Services.AddSingleton<ServerContext>();
 
 // Hosted services
 builder.Services.AddHostedService<SpotitoastService>();
+builder.Services.AddHostedService<SystemdWatchdogHeartbeatService>();
 
 builder.Services.AddHostedService(sp =>
     new SystemdStatusReporter(
