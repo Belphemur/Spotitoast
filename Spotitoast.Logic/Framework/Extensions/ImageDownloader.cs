@@ -3,17 +3,20 @@ using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BitFaster.Caching.Lru;
 using IronSoftware.Drawing;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Spotitoast.Logic.Framework.Extensions
 {
     public class ImageDownloader(
         IHttpClientFactory httpClientFactory,
-        IMemoryCache memoryCache,
         ILogger<ImageDownloader> logger)
     {
+        private const int ImageCacheCapacity = 10;
+        private static readonly TimeSpan ImageCacheDuration = TimeSpan.FromHours(1);
+
+        private readonly ClassicLru<Uri, CachedImage> _imageCache = new(ImageCacheCapacity);
         private readonly ConcurrentDictionary<Uri, Lazy<Task<AnyBitmap>>> _inFlightDownloads = new();
 
         /// <summary>
@@ -24,9 +27,14 @@ namespace Spotitoast.Logic.Framework.Extensions
         /// <returns></returns>
         public Task<AnyBitmap> DownloadImage(Uri uri)
         {
-            if (memoryCache.TryGetValue(uri, out byte[] imageBytes))
+            if (_imageCache.TryGet(uri, out var cachedImage))
             {
-                return Task.FromResult(AnyBitmap.FromBytes(imageBytes));
+                if (!cachedImage.IsExpired)
+                {
+                    return Task.FromResult(AnyBitmap.FromBytes(cachedImage.Bytes));
+                }
+
+                _imageCache.TryRemove(uri);
             }
 
             var lazy = _inFlightDownloads.GetOrAdd(uri,
@@ -43,9 +51,7 @@ namespace Spotitoast.Logic.Framework.Extensions
                 response.EnsureSuccessStatusCode();
                 var imageBytes = await response.Content.ReadAsByteArrayAsync();
 
-                using var entry = memoryCache.CreateEntry(uri);
-                entry.SlidingExpiration = TimeSpan.FromHours(1);
-                entry.Value = imageBytes;
+                _imageCache.AddOrUpdate(uri, new CachedImage(imageBytes, DateTimeOffset.UtcNow.Add(ImageCacheDuration)));
 
                 return AnyBitmap.FromBytes(imageBytes);
             }
@@ -58,6 +64,11 @@ namespace Spotitoast.Logic.Framework.Extensions
             {
                 _inFlightDownloads.TryRemove(uri, out _);
             }
+        }
+
+        private sealed record CachedImage(byte[] Bytes, DateTimeOffset ExpiresAtUtc)
+        {
+            public bool IsExpired => DateTimeOffset.UtcNow >= ExpiresAtUtc;
         }
     }
 }
