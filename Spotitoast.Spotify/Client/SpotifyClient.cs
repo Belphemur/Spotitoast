@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -21,23 +22,28 @@ namespace Spotitoast.Spotify.Client
         private readonly SpotifyWebClient _spotifyWebClient;
 
         [CanBeNull] private CurrentlyPlayingContext _playbackContext;
-
+        [CanBeNull] private FullTrack _lastPlayedTrack;
 
         private readonly ISubject<FullTrack> _playedTrackSubject = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackLiked = new Subject<FullTrack>();
         private readonly ISubject<FullTrack> _trackDisliked = new Subject<FullTrack>();
         private readonly SpotifyAuth _authClient;
         private readonly SpotifyAuthConfiguration _spotifyAuthConfiguration;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenAuthenticator _tokenAuthenticator = new("", "Bearer");
+
+        private const string SpotifyLibraryUrl = "https://api.spotify.com/v1/me/library";
+        public const string HttpClientName = "SpotifyLibrary";
 
         public IObservable<FullTrack> PlayedTrack => _playedTrackSubject.AsObservable();
         public IObservable<FullTrack> TrackLiked => _trackLiked.AsObservable();
         public IObservable<FullTrack> TrackDisliked => _trackDisliked.AsObservable();
         public bool IsPlaying => _playbackContext?.IsPlaying ?? false;
 
-        public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration, IJobScheduler jobScheduler)
+        public SpotifyClient(SpotifyWebClientConfiguration webConfiguration, SpotifyAuthConfiguration authConfiguration, IJobScheduler jobScheduler, IHttpClientFactory httpClientFactory)
         {
             _spotifyAuthConfiguration = authConfiguration;
+            _httpClientFactory = httpClientFactory;
             if (_spotifyAuthConfiguration.LastToken != null)
             {
                 _tokenAuthenticator.Token = _spotifyAuthConfiguration.LastToken.AccessToken;
@@ -89,10 +95,9 @@ namespace Spotitoast.Spotify.Client
                 }
 
 
-                var oldTrack = _playbackContext?.Item as FullTrack;
+                var oldTrack = _lastPlayedTrack;
                 _playbackContext = trackResponse;
-
-                var playedTrack = fullTrack;
+                _lastPlayedTrack = fullTrack;
 
                 Trace.WriteLine($"Track Found: ${fullTrack.Id} vs old ${oldTrack?.Id}");
 
@@ -100,7 +105,7 @@ namespace Spotitoast.Spotify.Client
                     || oldTrack == null
                     || fullTrack.Id != oldTrack.Id)
                 {
-                    _playedTrackSubject.OnNext(playedTrack);
+                    _playedTrackSubject.OnNext(fullTrack);
                 }
             }
             catch (Exception e)
@@ -118,9 +123,8 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> LikePlayedTrack()
         {
-            var track = _playbackContext?.Item as FullTrack;
+            var track = _lastPlayedTrack;
             var trackId = track?.Id;
-            var trackUri = GetTrackUri(trackId);
 
             Trace.WriteLine($"Loving ${trackId}.");
             var loveState = await CheckLoveState(trackId);
@@ -131,13 +135,13 @@ namespace Spotitoast.Spotify.Client
 
             try
             {
-                var result = await _spotifyWebClient.Library.SaveItems(new LibrarySaveItemsRequest(new[] { trackUri }));
+                var result = await SaveToLibrary(GetTrackUri(trackId));
                 if (!result)
                 {
                     return ActionResult.Error;
                 }
             }
-            catch (APIException e)
+            catch (HttpRequestException e)
             {
                 Trace.Write(e);
                 return ActionResult.Error;
@@ -190,9 +194,8 @@ namespace Spotitoast.Spotify.Client
         /// <returns></returns>
         public async Task<ActionResult> DislikePlayedTrack()
         {
-            var track = _playbackContext?.Item as FullTrack;
+            var track = _lastPlayedTrack;
             var trackId = track?.Id;
-            var trackUri = GetTrackUri(trackId);
             Trace.WriteLine($"Dislinking ${trackId}.");
             var resultSkip = await SkipTrack();
 
@@ -211,13 +214,13 @@ namespace Spotitoast.Spotify.Client
 
             try
             {
-                var result = await _spotifyWebClient.Library.RemoveItems(new LibraryRemoveItemsRequest(new[] { trackUri }));
+                var result = await RemoveFromLibrary(GetTrackUri(trackId));
                 if (!result)
                 {
                     return ActionResult.NotLiked;
                 }
             }
-            catch (APIException e)
+            catch (HttpRequestException e)
             {
                 Trace.Write(e);
                 return ActionResult.Error;
@@ -229,6 +232,34 @@ namespace Spotitoast.Spotify.Client
         private static string GetTrackUri(string trackId)
         {
             return $"spotify:track:{trackId}";
+        }
+
+        /// <summary>
+        /// Save items to the user's library via PUT /me/library?uris=...
+        /// </summary>
+        private async Task<bool> SaveToLibrary(params string[] uris)
+        {
+            using var client = _httpClientFactory.CreateClient(HttpClientName);
+            var encodedUris = Uri.EscapeDataString(string.Join(",", uris));
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"{SpotifyLibraryUrl}?uris={encodedUris}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenAuthenticator.Token);
+
+            using var response = await client.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+
+        /// <summary>
+        /// Remove items from the user's library via DELETE /me/library?uris=...
+        /// </summary>
+        private async Task<bool> RemoveFromLibrary(params string[] uris)
+        {
+            using var client = _httpClientFactory.CreateClient(HttpClientName);
+            var encodedUris = Uri.EscapeDataString(string.Join(",", uris));
+            using var request = new HttpRequestMessage(HttpMethod.Delete, $"{SpotifyLibraryUrl}?uris={encodedUris}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenAuthenticator.Token);
+
+            using var response = await client.SendAsync(request);
+            return response.IsSuccessStatusCode;
         }
 
         /// <summary>
@@ -315,7 +346,7 @@ namespace Spotitoast.Spotify.Client
         }
 
         /// <summary>
-        /// Resume playback
+        /// Pause playback
         /// </summary>
         /// <returns></returns>
         public async Task<ActionResult> Pause()

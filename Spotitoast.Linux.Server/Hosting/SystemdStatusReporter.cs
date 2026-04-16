@@ -8,7 +8,7 @@ using Spotitoast.Logic.Model.Song;
 
 #nullable enable
 
-namespace Spotitoast.Linux.Hosting
+namespace Spotitoast.Linux.Server.Hosting
 {
     /// <summary>
     /// Reports the currently playing track (and like/dislike events) to systemd

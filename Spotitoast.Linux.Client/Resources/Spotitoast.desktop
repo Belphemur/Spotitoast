@@ -3,7 +3,7 @@ Type=Application
 Encoding=UTF-8
 Name=Spotitoast
 Comment=Control Spotify and notifications from your desktop
-Exec=/opt/spotitoast/Spotitoast.Linux
+Exec=/opt/spotitoast/spotitoast status
 Icon=Spotitoast
 Terminal=false
 X-GNOME-Autostart-enabled=true
@@ -12,25 +12,25 @@ Actions=TogglePlayback;Like;Dislike;Skip;CurrentlyPlaying;
 
 [Desktop Action TogglePlayback]
 Name=Toggle Playback
-Exec=/opt/spotitoast/Spotitoast.Linux TogglePlayback
+Exec=/opt/spotitoast/spotitoast toggle
 X-KDE-Shortcuts=Ctrl+Home
 
 [Desktop Action Like]
 Name=Like Current Track
-Exec=/opt/spotitoast/Spotitoast.Linux Like
+Exec=/opt/spotitoast/spotitoast like
 X-KDE-Shortcuts=Ctrl+PgUp
 
 [Desktop Action Dislike]
 Name=Dislike Current Track
-Exec=/opt/spotitoast/Spotitoast.Linux Dislike
+Exec=/opt/spotitoast/spotitoast dislike
 X-KDE-Shortcuts=Ctrl+PgDown
 
 [Desktop Action Skip]
 Name=Skip Track
-Exec=/opt/spotitoast/Spotitoast.Linux Skip
+Exec=/opt/spotitoast/spotitoast skip
 X-KDE-Shortcuts=Ctrl+Right
 
 [Desktop Action CurrentlyPlaying]
 Name=Show Current Track
-Exec=/opt/spotitoast/Spotitoast.Linux CurrentlyPlaying
+Exec=/opt/spotitoast/spotitoast now
 X-KDE-Shortcuts=Ctrl+End

@@ -8,7 +8,7 @@ using Spotitoast.Logic.Business.Player;
 using Spotitoast.Logic.Framework.Extensions;
 using Spotitoast.Logic.Model.Song;
 
-namespace Spotitoast.Linux.Notification
+namespace Spotitoast.Linux.Server.Notification
 {
     public class NotificationHandler : INotificationHandler
     {
@@ -110,11 +110,11 @@ namespace Spotitoast.Linux.Notification
             }
 
             notificationData.Actions = notificationData.Actions.Append(new NotificationData.Action
-                                                       {
-                                                           Key = ActionFactory.PlayerAction.Skip.ToString(),
-                                                           Label = "⏭️Skip",
-                                                           OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
-                                                       })
+            {
+                Key = ActionFactory.PlayerAction.Skip.ToString(),
+                Label = "⏭️Skip",
+                OnActionCalled = () => _commandExecutor.Execute(ActionFactory.PlayerAction.Skip)
+            })
                                                        .ToArray();
         }
     }

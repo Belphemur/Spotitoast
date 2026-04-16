@@ -3,6 +3,7 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,21 +12,13 @@
         <ProjectReference Include="..\Notify.Linux\Notify.Linux.csproj" />
         <ProjectReference Include="..\Spotitoast.Configuration\Spotitoast.Configuration.csproj" />
         <ProjectReference Include="..\Spotitoast.Logic\Spotitoast.Logic.csproj" />
+        <ProjectReference Include="..\Spotitoast.Shared\Spotitoast.Shared.csproj" />
         <ProjectReference Include="..\Spotitoast.Spotify\Spotitoast.Spotify.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Resources\Spotitoast.ico">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\Spotitoast.desktop">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
         <None Include="Resources\spotitoast.service">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
-    <PropertyGroup>
-        <ApplicationIcon>Resources\Spotitoast.ico</ApplicationIcon>
-    </PropertyGroup>
 </Project>

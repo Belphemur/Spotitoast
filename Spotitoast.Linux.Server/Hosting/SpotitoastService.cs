@@ -2,13 +2,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Job.Scheduler.Scheduler;
 using Microsoft.Extensions.Hosting;
-using Spotitoast.Linux.Context;
-using Spotitoast.Linux.Notification;
+using Spotitoast.Linux.Server.Context;
+using Spotitoast.Linux.Server.Notification;
 
-namespace Spotitoast.Linux.Hosting
+namespace Spotitoast.Linux.Server.Hosting
 {
     /// <summary>
-    /// Background service that runs the Spotitoast TCP server event loop
+    /// Background service that runs the Spotitoast named-pipe server event loop
     /// and registers notification handlers for the Linux desktop.
     /// </summary>
     public class SpotitoastService : BackgroundService
@@ -17,20 +17,17 @@ namespace Spotitoast.Linux.Hosting
         private readonly INotificationHandler _notificationHandler;
         private readonly ServerContext _serverContext;
         private readonly IJobScheduler _jobScheduler;
-        private readonly int _port;
 
         public SpotitoastService(
             IHostApplicationLifetime lifetime,
             INotificationHandler notificationHandler,
             ServerContext serverContext,
-            IJobScheduler jobScheduler,
-            int port)
+            IJobScheduler jobScheduler)
         {
             _lifetime = lifetime;
             _notificationHandler = notificationHandler;
             _serverContext = serverContext;
             _jobScheduler = jobScheduler;
-            _port = port;
         }
 
         public override Task StartAsync(CancellationToken cancellationToken)
@@ -43,7 +40,7 @@ namespace Spotitoast.Linux.Hosting
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _serverContext.EventLoopStartAsync(_port, stoppingToken);
+            await _serverContext.EventLoopStartAsync(stoppingToken);
 
             // The event loop exits when the cancellation token fires or when
             // a client sends the Exit command.  In either case, ask the host

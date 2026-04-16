@@ -1,15 +1,16 @@
 using System;
-using System.Net;
-using System.Net.Sockets;
+using System.IO;
+using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 using Notify.Linux.Client;
-using Spotitoast.Linux.Notification;
+using Spotitoast.Linux.Server.Notification;
 using Spotitoast.Logic.Business.Action.Implementation;
 using Spotitoast.Logic.Business.Command;
+using Spotitoast.Shared.Ipc;
 using Spotitoast.Spotify.Model;
 
-namespace Spotitoast.Linux.Context
+namespace Spotitoast.Linux.Server.Context
 {
     public class ServerContext
     {
@@ -24,50 +25,47 @@ namespace Spotitoast.Linux.Context
             _notificationClient = notificationClient;
         }
 
-        public async Task EventLoopStartAsync(int port, CancellationToken token)
+        public async Task EventLoopStartAsync(CancellationToken token)
         {
             _notificationHandler.RegisterNotifications();
-            var bytes = new Byte[256];
-            var tcpListener = new TcpListener(IPAddress.Loopback, port);
-            tcpListener.Start();
-            token.Register(() => tcpListener.Stop());
+            var bytes = new byte[IpcConstants.BufferSize];
 
             while (!token.IsCancellationRequested)
             {
+                await using var pipeServer = new NamedPipeServerStream(
+                    IpcConstants.PipeName,
+                    PipeDirection.InOut,
+                    NamedPipeServerStream.MaxAllowedServerInstances,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.Asynchronous);
+
                 try
                 {
-                    using var client = await tcpListener.AcceptTcpClientAsync(token);
+                    await pipeServer.WaitForConnectionAsync(token);
 
-                    var stream = client.GetStream();
-                    int i;
-
-                    // Loop to receive all the data sent by the client.
-                    while ((i = await stream.ReadAsync(bytes.AsMemory(0, bytes.Length), token)) != 0)
+                    int bytesRead;
+                    while ((bytesRead = await pipeServer.ReadAsync(bytes.AsMemory(0, bytes.Length), token)) != 0)
                     {
-                        // Translate data bytes to a ASCII string.
-                        var cmd = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                        var cmd = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
 
                         var commandResult = await HandleCommand(cmd);
                         var msg = System.Text.Encoding.ASCII.GetBytes(commandResult.ToString());
 
-                        // Send back a response.
-                        await stream.WriteAsync(msg.AsMemory(0, msg.Length), token);
+                        await pipeServer.WriteAsync(msg.AsMemory(0, msg.Length), token);
+                        await pipeServer.FlushAsync(token);
+
                         if (commandResult == ActionResult.ExitApplication)
                         {
                             return;
                         }
                     }
                 }
-                catch (SocketException)
+                catch (IOException)
                 {
-                    // Either tcpListener.Start wasn't called (a bug!)
-                    // or the CancellationToken was cancelled before
-                    // we started accepting (giving an InvalidOperationException),
-                    // or the CancellationToken was cancelled after
-                    // we started accepting (giving an ObjectDisposedException).
-                    //
-                    // In the latter two cases we should surface the cancellation
-                    // exception, or otherwise rethrow the original exception.
+                    // Client disconnected unexpectedly — loop back and wait for next.
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
                     return;
                 }
             }
