@@ -19,6 +19,12 @@ namespace Spotitoast.Linux.Server.Hosting
         ISystemdNotifier? systemdNotifier = null)
         : BackgroundService
     {
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            TryNotifyStopping();
+            await base.StopAsync(cancellationToken);
+        }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var notifySocket = Environment.GetEnvironmentVariable("NOTIFY_SOCKET");
@@ -102,6 +108,25 @@ namespace Spotitoast.Linux.Server.Hosting
 
             pid = 0;
             return false;
+        }
+
+        private void TryNotifyStopping()
+        {
+            var notifySocket = Environment.GetEnvironmentVariable("NOTIFY_SOCKET");
+            if (systemdNotifier is null || string.IsNullOrWhiteSpace(notifySocket))
+            {
+                return;
+            }
+
+            try
+            {
+                systemdNotifier.Notify(new ServiceState("STOPPING=1"));
+                logger.LogInformation("Systemd has been notified of stopping");
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to send systemd STOPPING notification.");
+            }
         }
     }
 }
