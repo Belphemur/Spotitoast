@@ -11,26 +11,27 @@ using Spotitoast.Logic.Business.Command;
 using Spotitoast.Shared.Ipc;
 using Spotitoast.Spotify.Model;
 
+#nullable enable
+
 namespace Spotitoast.Linux.Server.Context
 {
     public class ServerContext
     {
-        private readonly INotificationHandler _notificationHandler;
         private readonly INotificationClient _notificationClient;
         private readonly ICommandExecutor _commandExecutor;
         private readonly ILogger<ServerContext> _logger;
+        private readonly object _pipeServerLock = new object();
+        private NamedPipeServerStream? _pipeServer;
 
-        public ServerContext(ICommandExecutor commandExecutor, INotificationHandler notificationHandler, INotificationClient notificationClient, ILogger<ServerContext> logger)
+        public ServerContext(ICommandExecutor commandExecutor, INotificationClient notificationClient, ILogger<ServerContext> logger)
         {
             _commandExecutor = commandExecutor;
-            _notificationHandler = notificationHandler;
             _notificationClient = notificationClient;
             _logger = logger;
         }
 
         public async Task EventLoopStartAsync(CancellationToken token)
         {
-            _notificationHandler.RegisterNotifications();
             var bytes = new byte[IpcConstants.BufferSize];
 
             while (!token.IsCancellationRequested)
@@ -41,6 +42,8 @@ namespace Spotitoast.Linux.Server.Context
                     NamedPipeServerStream.MaxAllowedServerInstances,
                     PipeTransmissionMode.Byte,
                     PipeOptions.Asynchronous);
+
+                SetCurrentPipeServer(pipeServer);
 
                 try
                 {
@@ -67,10 +70,27 @@ namespace Spotitoast.Linux.Server.Context
                 {
                     _logger.LogDebug(e, "Client disconnected unexpectedly.");
                 }
+                catch (ObjectDisposedException) when (token.IsCancellationRequested)
+                {
+                    return;
+                }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
                     return;
                 }
+                finally
+                {
+                    ClearCurrentPipeServer(pipeServer);
+                }
+            }
+        }
+
+        public void RequestShutdown()
+        {
+            lock (_pipeServerLock)
+            {
+                _pipeServer?.Dispose();
+                _pipeServer = null;
             }
         }
 
@@ -131,6 +151,25 @@ namespace Spotitoast.Linux.Server.Context
             }
 
             return result;
+        }
+
+        private void SetCurrentPipeServer(NamedPipeServerStream pipeServer)
+        {
+            lock (_pipeServerLock)
+            {
+                _pipeServer = pipeServer;
+            }
+        }
+
+        private void ClearCurrentPipeServer(NamedPipeServerStream pipeServer)
+        {
+            lock (_pipeServerLock)
+            {
+                if (ReferenceEquals(_pipeServer, pipeServer))
+                {
+                    _pipeServer = null;
+                }
+            }
         }
     }
 }

@@ -40,7 +40,13 @@ namespace Spotitoast.Linux.Server.Hosting
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _serverContext.EventLoopStartAsync(stoppingToken);
+            await Task.Factory
+                .StartNew(
+                    () => _serverContext.EventLoopStartAsync(stoppingToken),
+                    stoppingToken,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default)
+                .Unwrap();
 
             // The event loop exits when the cancellation token fires or when
             // a client sends the Exit command.  In either case, ask the host
@@ -50,6 +56,7 @@ namespace Spotitoast.Linux.Server.Hosting
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
+            _serverContext.RequestShutdown();
             await base.StopAsync(cancellationToken);
             await _jobScheduler.StopAsync(cancellationToken);
         }
