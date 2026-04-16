@@ -6,6 +6,7 @@ PartOf=graphical-session.target
 
 [Service]
 Type=notify
+NotifyAccess=main
 WorkingDirectory=/opt/spotitoast
 ExecStart=/opt/spotitoast/Spotitoast.Linux.Server
 Environment=XDG_DATA_DIRS=/usr/local/share:/usr/share
