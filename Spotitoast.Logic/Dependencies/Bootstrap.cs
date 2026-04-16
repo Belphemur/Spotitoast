@@ -38,6 +38,7 @@ namespace Spotitoast.Logic.Dependencies
             services.AddSingleton<IJobRunnerBuilder, JobRunnerBuilder>();
 
             // Spotify
+            services.AddHttpClient(SpotifyClient.HttpClientName);
             services.AddSingleton<SpotifyClient>();
             services.AddSingleton<ISpotifyNotifier, SpotifyNotifier>();
 
