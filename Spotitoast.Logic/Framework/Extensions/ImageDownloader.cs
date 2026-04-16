@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using IronSoftware.Drawing;
 using Microsoft.Extensions.Caching.Memory;
@@ -10,6 +13,7 @@ namespace Spotitoast.Logic.Framework.Extensions
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ConcurrentDictionary<Uri, Lazy<Task<AnyBitmap>>> _inFlightDownloads = new();
 
         public ImageDownloader(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
         {
@@ -18,7 +22,8 @@ namespace Spotitoast.Logic.Framework.Extensions
         }
 
         /// <summary>
-        /// Download in memory the image and return it as object
+        /// Download in memory the image and return it as object.
+        /// Concurrent calls for the same URI are coalesced so only one HTTP request is made.
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
@@ -29,6 +34,20 @@ namespace Spotitoast.Logic.Framework.Extensions
                 return AnyBitmap.FromBytes(imageBytes);
             }
 
+            var lazy = _inFlightDownloads.GetOrAdd(uri,
+                u => new Lazy<Task<AnyBitmap>>(() => DownloadImageCore(u), LazyThreadSafetyMode.ExecutionAndPublication));
+            try
+            {
+                return await lazy.Value;
+            }
+            finally
+            {
+                _inFlightDownloads.TryRemove(new KeyValuePair<Uri, Lazy<Task<AnyBitmap>>>(uri, lazy));
+            }
+        }
+
+        private async Task<AnyBitmap> DownloadImageCore(Uri uri)
+        {
             try
             {
                 using var entry = _memoryCache.CreateEntry(uri);
@@ -36,7 +55,7 @@ namespace Spotitoast.Logic.Framework.Extensions
                 using var client = _httpClientFactory.CreateClient("ImageDownloader");
                 using var response = await client.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
-                imageBytes = await response.Content.ReadAsByteArrayAsync();
+                var imageBytes = await response.Content.ReadAsByteArrayAsync();
                 entry.Value = imageBytes;
                 return AnyBitmap.FromBytes(imageBytes);
             }
