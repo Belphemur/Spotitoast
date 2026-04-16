@@ -27,7 +27,7 @@ All hotkeys are fully remappable through configuration.
 ## Supported Platforms
 
 - **Windows**: Full-featured with WinForms UI and system tray integration
-- **Linux**: Command-line interface with D-Bus notifications
+- **Linux**: Server/CLI architecture with D-Bus notifications and systemd integration
 
 ## Installation
 
@@ -89,9 +89,14 @@ Run on Windows:
 dotnet run --project Spotitoast/Spotitoast.csproj
 ```
 
-Run on Linux:
+Run on Linux (server):
 ```bash
-dotnet run --project Spotitoast.Linux/Spotitoast.Linux.csproj
+dotnet run --project Spotitoast.Linux.Server/Spotitoast.Linux.Server.csproj
+```
+
+Run on Linux (CLI client):
+```bash
+dotnet run --project Spotitoast.Linux.Client/Spotitoast.Linux.Client.csproj -- like
 ```
 
 ## Configuration
@@ -111,21 +116,69 @@ Configuration is typically stored in:
 
 Spotitoast is built with a modular, platform-aware architecture:
 
-- **Spotitoast.Spotify**: Spotify Web API client with authentication
-- **Spotitoast.Logic**: Core business logic for track control and notifications
-- **Spotitoast.Configuration**: Configuration persistence and management
-- **Spotitoast.HotKeys**: Global hotkey registration and handling
-- **Spotitoast** (Windows): WinForms UI with system tray integration
-- **Spotitoast.Banner** (Windows): Custom notification banner display
-- **Spotitoast.Linux**: Linux daemon and CLI interface
-- **Notify.Linux**: D-Bus integration for Linux notifications
+### Projects
 
-The application uses:
-- **Reactive Extensions (Rx)** for event-driven architecture
-- **Microsoft.Extensions.DependencyInjection** for dependency injection
-- **Job.Scheduler** for periodic polling tasks
+| Project | Purpose |
+|---------|---------|
+| **Spotitoast.Spotify** | Spotify Web API client with OAuth authentication and token refresh |
+| **Spotitoast.Logic** | Core business logic — track control, notifications, image downloading |
+| **Spotitoast.Configuration** | Configuration persistence and management |
+| **Spotitoast.HotKeys** | Global hotkey registration and handling |
+| **Spotitoast** | Windows WinForms UI with system tray integration |
+| **Spotitoast.Banner** | Windows custom notification banner display |
+| **Spotitoast.Linux.Server** | Linux long-running background service (systemd `Type=notify`) |
+| **Spotitoast.Linux.Client** | Linux lightweight CLI client (`spotitoast`) |
+| **Spotitoast.Shared** | Shared IPC types, constants, and named-pipe helpers |
+| **Notify.Linux** | D-Bus integration for Linux desktop notifications |
+
+### Linux: Server / CLI Client Split
+
+On Linux, Spotitoast uses a **server + CLI client** architecture communicating over a named pipe:
+
+```
+┌──────────────────────┐         named pipe          ┌─────────────────────┐
+│  Spotitoast Server   │◄───────────────────────────►│  spotitoast CLI     │
+│  (background service)│   "Like" → "Success"        │  (one-shot command) │
+│                      │                              │                     │
+│  • Spotify polling   │                              │  spotitoast like    │
+│  • D-Bus notifs      │                              │  spotitoast skip    │
+│  • Library mgmt      │                              │  spotitoast toggle  │
+│  • systemd notify    │                              │  spotitoast now     │
+└──────────────────────┘                              └─────────────────────┘
+```
+
+**Server** (`Spotitoast.Linux.Server`) — A .NET Generic Host background service that:
+- Polls Spotify for track changes via `Job.Scheduler`
+- Sends D-Bus desktop notifications on track change, like, and dislike
+- Listens on a per-user named pipe (`spotitoast-{username}`) for commands
+- Integrates with systemd: sends `READY=1` on start, `STOPPING=1` on shutdown, `WATCHDOG=1` heartbeats, and live `STATUS=Playing: Song — Artist` updates
+- Uses a mutex (`Global\Spotitoast-{username}`) to prevent duplicate instances
+
+**CLI Client** (`Spotitoast.Linux.Client`) — A Spectre.Console CLI that connects to the server pipe and sends a single command:
+
+| Command | Action |
+|---------|--------|
+| `spotitoast like` | Like current track |
+| `spotitoast dislike` | Dislike and skip current track |
+| `spotitoast toggle` | Toggle play/pause |
+| `spotitoast skip` | Skip to next track |
+| `spotitoast now` | Show currently playing track |
+| `spotitoast exit` | Stop the server |
+| `spotitoast status` | Check if the server is running |
+| `spotitoast send <Cmd>` | Send any `PlayerCommand` by name |
+
+The `.desktop` file actions invoke the CLI (e.g. `Exec=/opt/spotitoast/spotitoast like`).
+
+**IPC Protocol** — The client sends a `PlayerCommand` enum name as an ASCII string over the named pipe. The server parses it, executes the action, and responds with an `ActionResult` enum name.
+
+### Key Libraries
+
+- **Reactive Extensions (Rx)** for event-driven track/like/dislike streams
+- **Microsoft.Extensions.DependencyInjection** for DI wiring
+- **Job.Scheduler** for periodic Spotify polling
 - **IHttpClientFactory** for HTTP client management
 - **.NET Generic Host** with **systemd** integration on Linux
+- **Spectre.Console.Cli** for the Linux CLI client
 
 ## Building for Development
 
