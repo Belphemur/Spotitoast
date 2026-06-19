@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />
     <PackageReference Include="SpotifyAPI.Web" Version="7.4.2" />
     <PackageReference Include="SpotifyAPI.Web.Auth" Version="7.4.2" />
-    <PackageReference Include="System.Reactive" Version="7.0.0-preview.20" />
+    <PackageReference Include="System.Reactive" Version="7.0.0-rc.1" />
   </ItemGroup>
 
   <ItemGroup>
